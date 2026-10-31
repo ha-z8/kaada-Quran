@@ -1,0 +1,12 @@
+import sharp from 'sharp';
+import pngToIco from 'png-to-ico';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+const dir=new URL('../assets/',import.meta.url);await mkdir(dir,{recursive:true});
+const svg=await readFile(new URL('../icon.svg',import.meta.url));
+const png=await sharp(svg).resize(512,512).png().toBuffer();
+await writeFile(new URL('../assets/icon.png',import.meta.url),png);
+const sizes=[256,128,64,48,32,16];
+const imgs=await Promise.all(sizes.map(n=>sharp(svg).resize(n,n).png().toBuffer()));
+const ico=await pngToIco(imgs);
+await writeFile(new URL('../assets/icon.ico',import.meta.url),ico);
+console.log('Created icon PNG + ICO for Windows installer');
