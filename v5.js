@@ -95,6 +95,30 @@ function toolbar(){
 function pageButtons(){
  return '<div class="pagenav"><button class="btn small" data-page="-1" '+(state.page===1?'disabled':'')+'>→ السابقة</button><label>صفحة <input class="input" id="pageInput" type="number" min="1" max="604" value="'+state.page+'"> من ٦٠٤</label><button class="btn small" data-page="1" '+(state.page===604?'disabled':'')+'>التالية ←</button></div>';
 }
+const QCF_FONT_CACHE=new Map();
+async function upgradeMushaf(page){
+ const target=document.querySelector('.quran-text');if(!target||state.mode!=='mushaf')return;
+ const id=String(page).padStart(3,'0');
+ let data;try{const response=await fetch('./data/mushaf/pages/page-'+id+'.json');if(!response.ok)return;data=await response.json()}catch{return}
+ if(state.page!==page||!data||!Array.isArray(data.lines))return;
+ try{
+  if(!QCF_FONT_CACHE.has(id)){
+   const name='QCF2P'+id;const face=new FontFace(name,'url(./fonts/qcf/QCF2'+id+'.ttf) format("truetype")');
+   await face.load();document.fonts.add(face);QCF_FONT_CACHE.set(id,name);
+  }
+ }catch{return}
+ if(state.page!==page||!target.isConnected)return;
+ const face=QCF_FONT_CACHE.get(id);
+ const lines=data.lines.map(line=>{
+  if(line.type==='surah_name'){const n=line.decor?.surah||1;return '<div class="qcf-surah">۞ سورة '+esc(surah(n).name)+' ۞</div>'}
+  if(line.type==='basmallah')return '<div class="qcf-basmala">﷽</div>';
+  if(line.type!=='text')return '';
+  const words=(line.words||[]).map(w=>{const p=w.location?.split(':');const key=p&&p.length>=2?p[0]+':'+p[1]:'';return '<span class="qcf-glyph" '+(key?'role="button" tabindex="0" data-ayah="'+esc(key)+'"':'')+'>'+esc(w.qpcV2||'')+'</span>'}).join(' ');
+  return '<div class="qcf-line" dir="rtl">'+words+'</div>'
+ }).join('');
+ target.innerHTML='<div class="qcf-lines" style="font-family:\''+face+'\',serif">'+lines+'</div>';
+ target.setAttribute('data-verified-layout','qcf-v2');
+}
 function renderQuran(){
  const s=surah(state.surah);
  let html='<div class="reader-head"><h2>سورة '+esc(s.name)+'</h2><button class="btn small" data-resume>آخر موضع قراءة</button></div>'+toolbar();
@@ -110,6 +134,7 @@ function renderQuran(){
   html+=pageButtons()+'<article class="quran-page"><div class="qpage-header"><span>الجزء '+num(first.juz)+'</span><span>وِرد · حفص</span><span>صفحة '+num(state.page)+'</span></div><div class="quran-text">'+page.map(ayahHtml).join('')+'</div><div class="qpage-footer">﴿ '+num(state.page)+' ﴾</div></article>'+pageButtons()+'<div class="notice">حدود الصفحات صحيحة، لكن النص ليس تنضيدًا مطابقًا للأسطر الخمسة عشر في طبعة مصحف المدينة. لن نعرض تنسيقًا تقديريًا باعتباره نسخة رسمية.</div>';
  }
  $('content').innerHTML=html;
+ if(state.mode==='mushaf')upgradeMushaf(state.page);
 }
 function dhikrGoal(v){return Math.max(1,Number.parseInt(v.count,10)||1)}
 function renderHisn(){
