@@ -5,12 +5,13 @@ const norm=v=>String(v??'').normalize('NFKD').replace(/[\u064b-\u065f\u0670\u06d
 const num=v=>Number(v).toLocaleString('ar-SA');
 function get(k,defaultValue){for(const name of ['wird5:'+k,'wird4:'+k])try{const raw=localStorage.getItem(name);if(raw!==null)return JSON.parse(raw)}catch{}return defaultValue}
 function save(k,v){try{localStorage.setItem('wird5:'+k,JSON.stringify(v))}catch{}}
-const state={quran:[],hisn:[],flat:[],pages:[],view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:get('mode','mushaf'),font:get('font','Hafs'),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts',{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
+const state={quran:[],hisn:[],flat:[],pages:[],qcfIndex:null,view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:get('mode','mushaf'),font:get('font','Hafs'),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts',{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
 if(!AudioEngine.RECITERS.some(r=>r.id===state.reciter))state.reciter='ar.sudais';
 let toastTimeout;
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').hidden=true,3200)}
 const surah=s=>state.quran[Number(s)-1];
 const verse=(s,a)=>surah(s)?.verses[Number(a)-1];
+const printedPage=(s,a)=>state.qcfIndex?.overrides?.[s+':'+a]||verse(s,a)?.page||1;
 function look(){
  document.body.classList.toggle('dark',state.dark);
  $('theme').textContent=state.dark?'☀':'☾';
@@ -51,11 +52,11 @@ function route(){
  const parts=location.hash.slice(1).split('/'),v=parts[0];
  if(v==='page'){
   state.view='quran';state.page=Math.max(1,Math.min(604,Number(parts[1])||1));
-  const first=state.pages[state.page][0];state.surah=first?.s||1;state.ayah=first?.id||1;
+  const exact=state.qcfIndex?.firstByPage?.[state.page-1];const first=state.pages[state.page][0];state.surah=exact?.[0]||first?.s||1;state.ayah=exact?.[1]||first?.id||1;
  }else if(v==='quran'){
   state.view='quran';state.surah=Math.max(1,Math.min(114,Number(parts[1])||state.last.s||1));
   state.ayah=Math.max(1,Math.min(surah(state.surah)?.verses.length||1,Number(parts[2])||1));
-  state.page=verse(state.surah,state.ayah)?.page||1;
+  state.page=printedPage(state.surah,state.ayah);
  }else state.view=['home','adhkar','audio','saved','tasbih','settings','sources'].includes(v)?v:'home';
  render();
 }
@@ -320,7 +321,7 @@ function events(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ayah')){e.preventDefault();e.target.click()}});
  window.addEventListener('hashchange',route);window.addEventListener('online',setConnection);window.addEventListener('offline',setConnection);
 }
-window.W={state,render,closeDrawer,save,toast,num};
+window.W={state,render,closeDrawer,save,toast,num,printedPage};
 async function init(){
  events();AudioEngine.init();setConnection();look();
  try{
@@ -338,6 +339,10 @@ async function init(){
   }
   if(state.pages.slice(1).some(p=>!p.length))throw Error('بيانات إحدى الصفحات ناقصة');
   if(!verse(state.last?.s,state.last?.a))state.last={s:1,a:1};
+  try{
+   const res=await fetch('./data/mushaf/verse-page-index.json');
+   if(res.ok){const idx=await res.json();if(idx.version===1&&idx.firstByPage?.length===604&&idx.overrides)state.qcfIndex=idx;}
+  }catch{}
   route();
  }catch(e){$('content').innerHTML='<div class="empty">تعذر تشغيل الموقع: '+esc(e.message)+'<p>افتح الموقع أثناء الاتصال بالإنترنت ثم أعد المحاولة.</p></div>'}
  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
