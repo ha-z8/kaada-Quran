@@ -15,3 +15,5 @@ for(const [id,folder] of entries){
  for(const rate of [64,128,192])cdn.push(rate+':'+await head('https://cdn.islamic.network/quran/audio/'+rate+'/'+id+'/1.mp3'));
  console.log(id+' EveryAyah: '+every1+'/'+everyLast+' | CDN: '+cdn.join(' '));
 }
+
+for(const [label,url] of [['Sudais EveryAyah','https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/001001.mp3'],['Alafasy CDN','https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3']]){try{const x=await fetch(url,{method:'GET',headers:{Range:'bytes=0-1023'},signal:AbortSignal.timeout(12000)});console.log(label+' GET '+x.status+' CORS '+(x.headers.get('access-control-allow-origin')||'NONE')+' type '+x.headers.get('content-type'));await x.body?.cancel()}catch(e){console.log(label+' GET ERROR '+e.message)}}
