@@ -51,6 +51,10 @@ try{
  await page.locator('.sources-grid a').first().waitFor();
  await page.goto('http://127.0.0.1:39393/#settings');
  await page.locator('#downloadQCF').waitFor();
+ await page.locator('#runDiagnostics').click();
+ await page.locator('.diag-list').waitFor({timeout:15000});
+ assert.ok((await page.locator('.diag-item').count())>=7,'Diagnostics covers Quran, audio, QCF and fonts');
+
  await page.goto('http://127.0.0.1:39393/#audio');
  await page.locator('#readerSelect').waitFor();
  assert.equal(await page.locator('#readerSelect').inputValue(),'ar.sudais','Default reciter Sudais');
