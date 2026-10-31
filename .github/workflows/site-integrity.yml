@@ -1,0 +1,38 @@
+name: WIRD site integrity
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check HTML JavaScript syntax and assets
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),vm=require('vm');
+          for(const file of ['index.html','adhkar.html','audio.html']){
+            const txt=fs.readFileSync(file,'utf8'),s=txt.match(/<script>([\s\S]*?)<\/script>/);
+            if(!s)throw Error('Missing script: '+file);
+            new vm.Script(s[1],{filename:file});
+            console.log('Syntax OK:',file);
+          }
+          new vm.Script(fs.readFileSync('sw.js','utf8'),{filename:'sw.js'});
+          const required=['data/quran.json','data/hisn.json','fonts/kfg-hafs.woff2','fonts/kfg-naskh.woff2','fonts/kfg-digital-v2.woff2','icon.svg','manifest.webmanifest'];
+          for(const file of required){if(!fs.existsSync(file)||fs.statSync(file).size<100)throw Error('Missing/empty: '+file)}
+          const q=JSON.parse(fs.readFileSync('data/quran.json','utf8'));
+          if(q.length!==114||q.reduce((n,x)=>n+x.verses.length,0)!==6236)throw Error('Quran incomplete');
+          const pages=new Set(q.flatMap(x=>x.verses.map(v=>v.page)));
+          if(pages.size!==604)throw Error('Page count incorrect');
+          const hisn=JSON.parse(fs.readFileSync('data/hisn.json','utf8'));
+          if(hisn.length<100)throw Error('Hisn incomplete');
+          const uri='https://cdn.islamic.network/quran/audio/64/ar.alafasy/';
+          if(!fs.readFileSync('index.html','utf8').includes(uri)||!fs.readFileSync('audio.html','utf8').includes(uri))throw Error('Audio integration missing');
+          console.log('114 surahs; 6236 verses; 604 pages; '+hisn.length+' Hisn chapters; audio wired');
+          NODE
