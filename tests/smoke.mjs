@@ -45,6 +45,7 @@ try{
 
  await page.locator('.qcf-glyph[data-ayah="2:1"]').first().click();
  assert.equal(await page.locator('#verseDrawer').isVisible(),true,'Ayah actions');
+ assert.doesNotMatch(await page.locator('#drawerText').innerText(),/بِسْمِ/,'Al-Baqarah verse text must not duplicate its separate Basmala');
  assert.equal(await page.locator('[data-playmode]').count(),3,'Three play options');
  await page.locator('#drawerClose').click();
  await page.goto('http://127.0.0.1:39393/#adhkar');
