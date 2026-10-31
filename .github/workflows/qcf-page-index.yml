@@ -1,0 +1,29 @@
+name: Build exact QCF Quran page lookup
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/build-mushaf-page-index.mjs'
+      - '.github/workflows/qcf-page-index.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tools/build-mushaf-page-index.mjs
+      - name: Commit exact QCF verse-to-page lookup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/mushaf/verse-page-index.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data: align 6236 verse page lookup to QCF Madinah 604-page Mushaf"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
