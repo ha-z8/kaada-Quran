@@ -1,0 +1,39 @@
+name: Bundle local Quran fonts
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/bundle-fonts.yml'
+permissions:
+  contents: write
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and validate local WOFF2 fonts
+        run: |
+          python - <<'PY'
+          from urllib.request import Request,urlopen
+          from pathlib import Path
+          fonts={
+          'kfg-naskh.woff2':'https://raw.githubusercontent.com/nuqayah/qpc-fonts/master/various-woff2/UthmanTN1%20Ver10.woff2',
+          'kfg-digital-v2.woff2':'https://fonts.quran.ws/assets/fonts/digital-khatt-v2.woff2',
+          'kfg-hafs.woff2':'https://raw.githubusercontent.com/nuqayah/qpc-fonts/master/various-woff2/UthmanicHafs1%20Ver09.woff2'
+          }
+          Path('fonts').mkdir(exist_ok=True)
+          for name,url in fonts.items():
+              with urlopen(Request(url,headers={'User-Agent':'KAADA-Quran/1.0'}),timeout=90) as r: data=r.read()
+              if data[:4]!=b'wOF2' or len(data)<10000: raise RuntimeError('Invalid font: '+name)
+              Path('fonts',name).write_bytes(data)
+              print(name,len(data))
+          PY
+      - name: Commit fonts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fonts
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: bundle Quran fonts for offline reading"
+            git push
+          fi
