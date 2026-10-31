@@ -45,7 +45,11 @@ for(let page=1;page<=604;page++){
    assert.ok(/^\d{1,3}:\d{1,3}:\d+$/.test(word.location),'Invalid verse location '+word.location);
    const [s,a]=word.location.split(':').map(Number),key=s+':'+a;
    assert.ok(ayahKeys.has(key),'Page glyph references non-existing ayah '+key);
-   assert.equal(q[s-1].verses[a-1].page,page,'Incorrect QCF page for '+key);
+   // An ayah can begin on one printed page and continue onto the page where the next ayah begins.
+   const verseStart=q[s-1].verses[a-1].page;
+   const next=q[s-1].verses[a]||q[s]?.verses[0];
+   const verseEnd=next?.page??604;
+   assert.ok(page>=verseStart&&page<=verseEnd,'QCF word outside verse page span '+key+' at '+page+' (start '+verseStart+', next '+verseEnd+')');
    references.add(key);
    if(word.kind==='marker'){
     assert.ok(!markers.has(key),'Repeated marker for verse '+key);
