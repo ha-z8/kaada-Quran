@@ -37,3 +37,14 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 .dark .ayah-badge{box-shadow:inset 0 0 0 2px #202d24}
 @media(max-width:1170px){.college-side{flex-direction:column;padding:7px 4px}.college-side span{display:none}.college-side img{width:42px;height:42px}}
 @media(max-width:710px){.college-side{display:none}.settings-grid,.sources-grid{grid-template-columns:1fr}.tasbih-panel{padding:15px}.tasbih-word{font-size:29px}.tasbih-button{width:210px;min-height:210px;min-width:210px}.tasbih-button strong{font-size:62px}}
+
+/* Exact QCF V2 Madinah page renderer — one typeface for each page */
+.qcf-lines{width:100%;display:flex;min-height:700px;flex-direction:column;justify-content:space-around;gap:0;text-align:center;text-align-last:center}
+.qcf-line{width:100%;display:block;text-align:center;white-space:nowrap;font-size:clamp(19px,2.8vw,37px);line-height:1.6;word-spacing:0}
+.qcf-glyph{display:inline;cursor:pointer;border-radius:3px}
+.qcf-glyph:hover,.qcf-glyph:focus-visible{background:#dfebd1;color:#153722;outline:none}
+.qcf-surah{font:normal 33px/1.8 WirdHafs,"Traditional Arabic",serif;color:#215b3c;border:2px solid #a1b99d;border-radius:65px 10px;margin:5px 0}
+.qcf-basmala{font:normal 36px/1.7 WirdHafs,"Traditional Arabic",serif;display:block;text-align:center}
+.dark .qcf-surah{color:#d6e9cf;border-color:#708977}
+@media(max-width:960px){.qcf-lines{min-height:570px}.qcf-line{font-size:clamp(16px,3.1vw,30px)}}
+@media(max-width:710px){.qcf-lines{min-height:490px}.qcf-line{font-size:clamp(11px,2.85vw,22px);line-height:1.9}.qcf-surah{font-size:22px}.qcf-basmala{font-size:26px}}
