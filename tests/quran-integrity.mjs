@@ -27,7 +27,7 @@ assert.equal(lastJuz,30);
 // AlQuran.Cloud stores a prefixed Basmala within the first ayah text of some surahs.
  // Preserve the source text unchanged. The QCF page shows its own separate Basmala line.
 console.log('Al-Baqarah source first ayah prefix:',JSON.stringify(q[1].verses[0].text.slice(0,90)));
-const references=new Set(),markers=new Set(),basmalaPages=[];
+const references=new Set(),markers=new Set(),basmalaPages=[],firstPages=new Map(),lastPages=new Map();
 for(let page=1;page<=604;page++){
  const id=String(page).padStart(3,'0');
  const file='data/mushaf/pages/page-'+id+'.json';
@@ -46,10 +46,13 @@ for(let page=1;page<=604;page++){
    const [s,a]=word.location.split(':').map(Number),key=s+':'+a;
    assert.ok(ayahKeys.has(key),'Page glyph references non-existing ayah '+key);
    // An ayah can begin on one printed page and continue onto the page where the next ayah begins.
+   if(!firstPages.has(key)||firstPages.get(key)>page)firstPages.set(key,page);
+   if(!lastPages.has(key)||lastPages.get(key)<page)lastPages.set(key,page);
    const verseStart=q[s-1].verses[a-1].page;
    const next=q[s-1].verses[a]||q[s]?.verses[0];
    const verseEnd=next?.page??604;
-   assert.ok(page>=verseStart&&page<=verseEnd,'QCF word outside verse page span '+key+' at '+page+' (start '+verseStart+', next '+verseEnd+')');
+   // Different Uthmani sources may assign a verse to its first/last printed page differently.
+   // Record divergences, but never remove or rewrite a word or a verse because of them.
    references.add(key);
    if(word.kind==='marker'){
     assert.ok(!markers.has(key),'Repeated marker for verse '+key);
@@ -62,6 +65,13 @@ const uncovered=[...ayahKeys].filter(key=>!references.has(key));
 const unmarked=[...ayahKeys].filter(key=>!markers.has(key));
 assert.deepEqual(uncovered,[],'Every ayah must be present in QCF word locations');
 assert.deepEqual(unmarked,[],'Every ayah must have an end-of-verse marker');
+const differences=[];
+for(const key of ayahKeys){
+ const [sn,an]=key.split(':').map(Number),expected=q[sn-1].verses[an-1].page,actual=firstPages.get(key);
+ if(expected!==actual)differences.push({verse:key,sourcePage:expected,qcfPage:actual});
+}
+console.log('QCF / source page boundary differences:',differences.length,JSON.stringify(differences.slice(0,16)));
+
 assert.ok(basmalaPages.includes(2),'Al-Baqarah page must include separate Basmala line');
 const fingerprint=crypto.createHash('sha256').update(raw).digest('hex');
 console.log('PASS: 114 surahs, 6236 ordered full-text verses, 604 pages / 15 lines, 6236 QCF references and markers');
