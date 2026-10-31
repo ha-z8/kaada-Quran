@@ -34,4 +34,10 @@ foreach($f in $files){
  Get-FileHash -Path $f.FullName -Algorithm SHA256 | Out-File ($f.FullName+".sha256.txt") -Encoding utf8
 }
 Write-Host "SUCCESS! Windows offline installers in dist\windows; shareable ZIPs in dist\share" -ForegroundColor Green
+Write-Host "The recipient needs no Node.js or internet. Windows x64 is required."node tools/zip-share.mjs
+if($LASTEXITCODE -ne 0){throw "ZIP64 shareable packages could not be created"}
+Get-ChildItem "dist\\windows" -Filter "WIRD_Quran_*.exe" | ForEach-Object {
+  Get-FileHash -Path $_.FullName -Algorithm SHA256 | Out-File ($_.FullName + ".sha256.txt") -Encoding utf8
+}
+Write-Host "SUCCESS! Windows offline installers in dist\windows; shareable ZIPs in dist\share" -ForegroundColor Green
 Write-Host "The recipient needs no Node.js or internet. Windows x64 is required."
