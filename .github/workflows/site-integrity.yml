@@ -21,7 +21,7 @@ jobs:
           for(const file of required){if(!fs.existsSync(file)||fs.statSync(file).size<100)throw Error('Missing or empty '+file)}
           for(const file of ['v5.js','audio5.js','sw.js']){new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});console.log('Syntax OK',file)}
           const html=fs.readFileSync('index.html','utf8');
-          for(const script of ['audio5.js','v5.js'])if(!html.includes('src="./'+script+'"'))throw Error('Script not loaded '+script);
+          for(const script of ['audio5.js','v5.js'])if(!html.includes('src="./'+script+'?v=6.1"'))throw Error('Script not loaded '+script);
           if(!fs.readFileSync('audio5.js','utf8').includes('ar.sudais'))throw Error('Sudais missing');
           if(!fs.readFileSync('audio5.js','utf8').includes('cdn.islamic.network/quran/audio/'))throw Error('Audio CDN missing');
           const q=JSON.parse(fs.readFileSync('data/quran.json','utf8'));
