@@ -1,3 +1,4 @@
+// Check first and final Quran ayah availability for each alternative source.
 const entries=[
 ['ar.sudais','Abdurrahmaan_As-Sudais_192kbps'],
 ['ar.shuraim','Saood_ash-Shuraym_128kbps'],
