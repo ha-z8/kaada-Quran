@@ -38,6 +38,17 @@ try{
  await page.goto('http://127.0.0.1:39393/#audio');
  await page.locator('#readerSelect').waitFor();
  assert.equal(await page.locator('#readerSelect').inputValue(),'ar.sudais','Default reciter Sudais');
+ await page.route('https://everyayah.com/data/**',route=>route.fulfill({status:200,headers:{'Content-Type':'audio/mpeg','Access-Control-Allow-Origin':'*'},body:Buffer.alloc(1200,67)}));
+ await page.locator('#audioSurah').selectOption('1');
+ await page.locator('#downloadSurah').click();
+ await page.waitForFunction(()=>document.getElementById('downloadStatus')?.textContent.includes('اكتمل'),{timeout:25000});
+ const savedAudio=await page.evaluate(async()=>{
+   const cache=await caches.open('wird-audio-v5');
+   return Boolean(await cache.match('https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/001001.mp3'));
+ });
+ assert.equal(savedAudio,true,'Offline Sudais audio cache');
+ await page.unroute('https://everyayah.com/data/**');
+
  await page.locator('#checkAudio').click();
  await page.locator('#downloadStatus').waitFor();
  await page.goto('http://127.0.0.1:39393/#home');
@@ -48,6 +59,6 @@ try{
  await page.goto('http://127.0.0.1:39393/#adhkar');
  await page.locator('.dhikr-card').first().waitFor({timeout:15000});
  assert.deepEqual(errors,[],'No uncaught JavaScript exceptions');
- console.log('PASS: 114 surahs, basmala, ayah actions, Hisn counters, Sudais, offline reload, no JS errors');
+ console.log('PASS: 114 surahs, basmala, ayah actions, Hisn counters, Sudais, offline MP3 cache, offline reload, no JS errors');
  await context.close();
 }finally{if(browser)await browser.close();server.close()}
