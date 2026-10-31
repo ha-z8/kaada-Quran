@@ -131,3 +131,7 @@ body,button,input,select,textarea{font-family:var(--ui-font)}
  .sidebar .nav>a,.sidebar .nav-more{font-size:9px}
  .reader-controls{gap:7px}
 }
+
+/* QCF glyph words must stay inline in their original order, never separate flex items. */
+.qcf-line{display:block!important;text-align:center;text-align-last:center;align-content:center}
+.qcf-glyph{display:inline!important}
