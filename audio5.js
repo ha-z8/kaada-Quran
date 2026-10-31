@@ -3,24 +3,24 @@ window.AudioEngine=(()=>{
 const BASE='https://cdn.islamic.network/quran/audio/';
 const STORE='wird-audio-v5';
 const RECITERS=[
-{id:'ar.sudais',name:'عبدالرحمن السديس',rate:192},
+{id:'ar.sudais',name:'عبدالرحمن السديس',rate:192,folder:'Abdurrahmaan_As-Sudais_192kbps'},
 {id:'ar.alafasy',name:'مشاري راشد العفاسي',rate:128},
 {id:'ar.husary',name:'محمود خليل الحصري',rate:128},
 {id:'ar.minshawi',name:'محمد صديق المنشاوي',rate:128},
-{id:'ar.shuraim',name:'سعود الشريم',rate:128},
-{id:'ar.abdulbasit',name:'عبدالباسط عبدالصمد',rate:192},
-{id:'ar.ajamy',name:'أحمد العجمي',rate:128},
+{id:'ar.shuraim',name:'سعود الشريم',rate:128,folder:'Saood_ash-Shuraym_128kbps'},
+{id:'ar.abdulbasit',name:'عبدالباسط عبدالصمد',rate:192,folder:'Abdul_Basit_Murattal_192kbps'},
+{id:'ar.ajamy',name:'أحمد العجمي',rate:128,folder:'Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer.Com'},
 {id:'ar.hudhaify',name:'علي الحذيفي',rate:128},
-{id:'ar.muhammadayoub',name:'محمد أيوب',rate:128},
+{id:'ar.muhammadayoub',name:'محمد أيوب',rate:128,folder:'Muhammad_Ayyoub_128kbps'},
 {id:'ar.muhammadjibreel',name:'محمد جبريل',rate:128},
 {id:'ar.minshawimujawwad',name:'المنشاوي — مجود',rate:64},
-{id:'ar.abdulbasitmujawwad',name:'عبدالباسط — مجود',rate:192}
+{id:'ar.abdulbasitmujawwad',name:'عبدالباسط — مجود',rate:192,folder:'Abdul_Basit_Mujawwad_128kbps'}
 ];
 let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false;
 const el=id=>document.getElementById(id);
 const settings=()=>window.W;
 const reciter=()=>RECITERS.find(r=>r.id===settings()?.state.reciter)||RECITERS[0];
-const fileURL=(r,v,rate=r.rate)=>BASE+rate+'/'+r.id+'/'+v.global+'.mp3';
+const fileURL=(r,v,rate=r.rate)=>r.folder?'https://everyayah.com/data/'+r.folder+'/'+String(v.s).padStart(3,'0')+String(v.id).padStart(3,'0')+'.mp3':BASE+rate+'/'+r.id+'/'+v.global+'.mp3';
 const opts=()=>RECITERS.map(r=>'<option value="'+r.id+'" '+(reciter().id===r.id?'selected':'')+'>'+r.name+'</option>').join('');
 function revoke(){if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null}}
 async function cached(url){if(!('caches'in window))return null;try{const cache=await caches.open(STORE),response=await cache.match(url);if(!response||response.type==='opaque')return null;const b=await response.blob();return b.size>300?URL.createObjectURL(b):null}catch{return null}}
@@ -30,7 +30,7 @@ async function playAt(index){
  current=index;token++;const request=token,player=el('audioElement');player.pause();revoke();
  el('dock').hidden=false;el('dockReciter').innerHTML=opts();
  status('سورة '+w.state.quran[v.s-1].name+' · الآية '+w.num(v.id),'جارٍ تجهيز التلاوة…');
- const r=reciter(),rates=[r.rate,128,192,64].filter((x,i,a)=>a.indexOf(x)===i);
+ const r=reciter(),rates=(r.folder?[r.rate]:[r.rate,128,192,64]).filter((x,i,a)=>a.indexOf(x)===i);
  for(const rate of rates){
   const blob=await cached(fileURL(r,v,rate));
   if(request!==token){if(blob)URL.revokeObjectURL(blob);return}
