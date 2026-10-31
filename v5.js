@@ -128,7 +128,7 @@ function ayahHtml(v){
 }
 function toolbar(){
  const choose=state.quran.map(s=>'<option value="'+s.id+'" '+(state.surah===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('');
- return '<div class="reader-controls"><label>السورة <select id="surahSelect">'+choose+'</select></label><label>طريقة القراءة <select id="modeSelect"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>خط المدينة — ١٥ سطرًا</option><option value="plain" '+(state.mode==='plain'?'selected':'')+'>الخط العادي — قراءة متصلة</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label><label>الخط <select id="fontSelect"><option value="Hafs" '+(state.font==='Hafs'?'selected':'')+'>حفص العثماني</option><option value="Naskh" '+(state.font==='Naskh'?'selected':'')+'>النسخ</option><option value="Digital" '+(state.font==='Digital'?'selected':'')+'>الرقمي</option></select></label><label class="reader-font-control" for="quranFontSize">حجم الآيات <input type="range" id="quranFontSize" min="22" max="46" value="'+state.size+'"><output id="quranFontSizeValue">'+num(state.size)+'</output></label><button class="btn small" data-size="-2" aria-label="تصغير خط المصحف">أ−</button><button class="btn small" data-size="2" aria-label="تكبير خط المصحف">أ+</button></div>';
+ return '<div class="reader-controls"><label>السورة <select id="surahSelect">'+choose+'</select></label><label>طريقة القراءة <select id="modeSelect"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>خط المدينة — ١٥ سطرًا</option><option value="plain" '+(state.mode==='plain'?'selected':'')+'>الخط العادي — قراءة متصلة</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label>'+(state.mode==='mushaf'?'<div class="qcf-font-info" title="مصحف المدينة يستخدم خطًا خاصًا لكل صفحة">✥ خط المدينة الأصلي</div>':'<label>الخط العادي <select id="fontSelect"><option value="Naskh" '+(state.font==='Naskh'?'selected':'')+'>نسخ واضح</option><option value="Hafs" '+(state.font==='Hafs'?'selected':'')+'>رسم عثماني</option><option value="Digital" '+(state.font==='Digital'?'selected':'')+'>رقمي</option></select></label>')+'><label class="reader-font-control" for="quranFontSize">حجم الآيات <input type="range" id="quranFontSize" min="22" max="46" value="'+state.size+'"><output id="quranFontSizeValue">'+num(state.size)+'</output></label><button class="btn small" data-size="-2" aria-label="تصغير خط المصحف">أ−</button><button class="btn small" data-size="2" aria-label="تكبير خط المصحف">أ+</button></div>';
 }
 function pageButtons(){
  return '<div class="pagenav"><button class="btn small" data-page="-1" '+(state.page===1?'disabled':'')+'>→ السابقة</button><label>صفحة <input class="input" id="pageInput" type="number" min="1" max="604" value="'+state.page+'"> من ٦٠٤</label><button class="btn small" data-page="1" '+(state.page===604?'disabled':'')+'>التالية ←</button></div>';
@@ -137,14 +137,14 @@ const QCF_FONT_CACHE=new Map();
 function fitMushafLines(){
  const container=document.querySelector('.qcf-lines');
  if(!container||!container.isConnected)return;
- const lines=[...container.querySelectorAll('.qcf-line')];
+ const lines=[...container.querySelectorAll('.qcf-line, .qcf-basmala-words, .qcf-surah')];
  if(!lines.length)return;
  const base=Math.max(14,Math.min(51,Number(state.size)||32));
  container.style.setProperty('--qcf-render-size',base+'px');
  // Preserve the original 15-line pagination while ensuring long lines fit on narrow screens.
  let scale=1;
  for(const line of lines){
-  const width=line.clientWidth;
+  const width=line.getBoundingClientRect().width;
   if(width>0&&line.scrollWidth>width)scale=Math.min(scale,(width-3)/line.scrollWidth);
  }
  container.style.setProperty('--qcf-render-size',Math.max(7,Math.floor(base*scale*100)/100)+'px');
@@ -166,7 +166,7 @@ async function upgradeMushaf(page){
  const face=QCF_FONT_CACHE.get(id);
  const lines=data.lines.map(line=>{
   if(line.type==='surah_name'){const n=line.decor?.surah||1;return '<div class="qcf-surah">۞ سورة '+esc(surah(n).name)+' ۞</div>'}
-  if(line.type==='basmallah')return '<div class="qcf-basmala" lang="ar" aria-label="بسم الله الرحمن الرحيم">بِسْمِ اللّٰهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
+  if(line.type==='basmallah')return '<div class="qcf-basmala" lang="ar" aria-label="بسم الله الرحمن الرحيم"><span class="qcf-basmala-words">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span></div>';
   if(line.type==='blank')return '<div class="qcf-line qcf-blank" aria-hidden="true"></div>';
   if(line.type!=='text')return '';
   const words=(line.words||[]).map(w=>{const p=w.location?.split(':');const key=p&&p.length>=2?p[0]+':'+p[1]:'';return '<span class="qcf-glyph" '+(key?'role="button" tabindex="0" data-ayah="'+esc(key)+'"':'')+'>'+esc(w.qpcV2||'')+'</span>'}).join(' ');
@@ -324,14 +324,14 @@ function events(){
  document.addEventListener('change',e=>{
   const t=e.target;
   if(t.id==='surahSelect')go('quran',Number(t.value),1);
-  else if(t.id==='modeSelect'){state.mode=t.value;save('mode',state.mode);render()}
+  else if(t.id==='modeSelect'){state.mode=t.value;save('mode',state.mode);if(t.value==='plain'&&state.font==='Hafs'){state.font='Naskh';save('font',state.font)}render()}
   else if(t.id==='fontSelect'){state.font=t.value;save('font',state.font);render()}
   else if(t.id==='pageInput')location.hash='#page/'+Math.max(1,Math.min(604,Number(t.value)||1));
   else if(t.id==='readerSelect')AudioEngine.changeReciter(t.value);
   else if(t.id==='audioSurah'){state.surah=Number(t.value);state.ayah=1;render()}
   else if(t.id==='tasbihSelect'){save('tasbih-selection',Number(t.value));render()}
   else if(t.id==='tasbihGoal'){save('tasbih-goal',Number(t.value));render()}
-  else if(t.id==='settingsMode'){state.mode=t.value;save('mode',state.mode);render()}
+  else if(t.id==='settingsMode'){state.mode=t.value;save('mode',state.mode);if(t.value==='plain'&&state.font==='Hafs'){state.font='Naskh';save('font',state.font)}render()}
   else if(t.id==='settingsFont'){state.font=t.value;save('font',state.font);render()}
   else if(t.id==='settingsTheme'){state.dark=t.value==='dark';save('dark',state.dark);render()}
   else if(t.id==='settingsSize'){state.size=Number(t.value);save('size',state.size);render()}
