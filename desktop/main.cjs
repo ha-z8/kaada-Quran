@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 protocol.registerSchemesAsPrivileged([{scheme:'wird',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}}]);
-const root=__dirname;
+const root=path.resolve(__dirname,'..');
 function resolveWithin(base,pathname){
  let rel;try{rel=decodeURIComponent(pathname).replace(/^\/+/, '')||'index.html'}catch{return null}
  if(rel.includes('\\')||rel.includes('\0'))return null;
