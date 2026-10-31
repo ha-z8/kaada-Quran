@@ -196,6 +196,7 @@ await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>W.state.page),120,'QCF page index overrides API page for verse 5:77');
  await page.goto('http://127.0.0.1:39393/#quran/2/1');
  await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor({timeout:20000});
+ await page.waitForFunction(()=>document.querySelector('.qcf-lines')?.dataset.fontFitted==='true',{timeout:10000});
  const clipped=await page.evaluate(()=>{
    const lines=[...document.querySelectorAll('.qcf-line')].filter(x=>!x.classList.contains('qcf-blank'));
    return lines.filter(line=>line.scrollWidth>line.clientWidth+4).length;
