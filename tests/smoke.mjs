@@ -24,8 +24,9 @@ try{
  assert.equal(await page.locator('.surah-card').count(),114,'Surah index');
  await page.locator('[data-surah="2"]').first().click();
  await page.locator('.quran-page').waitFor({timeout:20000});
- assert.equal(await page.locator('.basmala').count(),1,'Surah al-Baqarah shows one basmala');
- await page.locator('#ayah-2-1').click();
+ await page.waitForFunction(()=>document.querySelector('.quran-text')?.dataset.verifiedLayout==='qcf-v2',{timeout:15000});
+ assert.equal(await page.locator('.qcf-basmala').count(),1,'Madinah page has exactly one basmala');
+ await page.locator('.qcf-glyph[data-ayah="2:1"]').first().click();
  assert.equal(await page.locator('#verseDrawer').isVisible(),true,'Ayah actions');
  assert.equal(await page.locator('[data-playmode]').count(),3,'Three play options');
  await page.locator('#drawerClose').click();
