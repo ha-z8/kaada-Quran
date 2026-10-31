@@ -139,15 +139,20 @@ function fitMushafLines(){
  if(!container||!container.isConnected)return;
  const lines=[...container.querySelectorAll('.qcf-line, .qcf-basmala-words, .qcf-surah')];
  if(!lines.length)return;
- const base=Math.max(14,Math.min(51,Number(state.size)||32));
- container.style.setProperty('--qcf-render-size',base+'px');
- // Preserve the original 15-line pagination while ensuring long lines fit on narrow screens.
- let scale=1;
- for(const line of lines){
-  const width=line.classList.contains('qcf-basmala-words')?line.parentElement.clientWidth:line.getBoundingClientRect().width;
-  if(width>0&&line.scrollWidth>width)scale=Math.min(scale,(width-3)/line.scrollWidth);
+ let size=Math.max(14,Math.min(51,Number(state.size)||32));
+ container.style.setProperty('--qcf-render-size',size+'px');
+ // Re-measure after every font-size adjustment: even long glyph lines must fit.
+ for(let pass=0;pass<7;pass++){
+  let ratio=1;
+  for(const line of lines){
+   const width=line.classList.contains('qcf-basmala-words')?line.parentElement.clientWidth:line.clientWidth;
+   if(width>0&&line.scrollWidth>width+1)ratio=Math.min(ratio,(width-5)/line.scrollWidth);
+  }
+  if(ratio>=.992)break;
+  size=Math.max(3,size*ratio*.978);
+  container.style.setProperty('--qcf-render-size',size.toFixed(2)+'px');
  }
- container.style.setProperty('--qcf-render-size',Math.max(7,Math.floor(base*scale*100)/100)+'px');
+ container.dataset.fontFitted='true';
 }
 window.addEventListener('resize',()=>requestAnimationFrame(fitMushafLines));
 
@@ -174,6 +179,7 @@ async function upgradeMushaf(page){
  }).join('');
  target.innerHTML='<div class="qcf-lines" style="font-family:\''+face+'\',serif">'+lines+'</div>';
  target.setAttribute('data-verified-layout','qcf-v2');
+ fitMushafLines();
  requestAnimationFrame(fitMushafLines);
 }
 function plainVerseHtml(v,s){
