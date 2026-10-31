@@ -124,7 +124,7 @@ function ayahHtml(v){
  let header='';
  if(v.id===1){header='<div class="surah-divider">۞ سُورَةُ '+esc(surah(v.s).name)+' ۞</div>';if(v.s!==1&&v.s!==9)header+='<div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>'}
  const info=basmala(v);
- return header+'<span class="ayah" role="button" tabindex="0" id="ayah-'+v.s+'-'+v.id+'" data-ayah="'+v.s+':'+v.id+'">'+esc(info.text)+' <span class="ayah-badge">'+num(v.id)+'</span> </span>';
+ return header+'<span class="ayah" role="button" tabindex="0" id="ayah-'+v.s+'-'+v.id+'" data-ayah="'+v.s+':'+v.id+'">'+esc(info.text)+' <span class="ayah-end-normal">﴿'+num(v.id)+'﴾</span> </span>';
 }
 function toolbar(){
  const choose=state.quran.map(s=>'<option value="'+s.id+'" '+(state.surah===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('');
