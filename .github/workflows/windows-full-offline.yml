@@ -1,0 +1,36 @@
+name: WIRD 6 full offline Windows installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Electron builder
+        run: npm install
+      - name: Download complete default recitations (Sudais + Muhammad Ayyoub)
+        run: node tools/download-default-audio.mjs --all
+      - name: Validate both full Quran recordings
+        run: node tools/verify-offline.mjs
+      - name: Build complete Windows x64 NSIS installer
+        shell: pwsh
+        run: |
+          $env:CSC_IDENTITY_AUTO_DISCOVERY="false"
+          npm run prepare:icons
+          npx electron-builder --win nsis --x64
+          if($LASTEXITCODE -ne 0){throw "Installer build failed"}
+      - name: Make ZIP64 shareable archive
+        run: node tools/zip-share.mjs
+      - name: Upload offline installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WIRD-6-Windows-Offline-Setup
+          path: dist/share/*.zip
+          retention-days: 7
+          compression-level: 0
