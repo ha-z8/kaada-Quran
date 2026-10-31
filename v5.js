@@ -142,7 +142,7 @@ function searchView(value){
  $('content').innerHTML='<div class="section-head"><h2>البحث في القرآن</h2><span>'+num(results.length)+' نتيجة'+(results.length===120?' أولى':'')+'</span></div><div class="search-box"><input class="input" id="mainSearch" placeholder="كلمة أو عبارة أو 2:255" value="'+esc(state.search)+'"><button class="btn" id="clearSearch">مسح</button></div>'+(results.map(v=>'<button class="search-result" data-open="'+v.s+':'+v.id+'"><span class="tag">سورة '+esc(surah(v.s).name)+' · '+num(v.id)+'</span><p>'+esc(v.text)+'</p><small>فتح الآية ←</small></button>').join('')||'<div class="empty">لم تظهر نتائج، جرّب كلمة أقصر.</div>');
 }
 function handleClick(e){
- const t=e.target.closest('button');if(!t)return;
+ const t=e.target.closest('button,[data-ayah]');if(!t)return;
  if(t.dataset.go){go(t.dataset.go);return}
  if(t.dataset.surah){go('quran',Number(t.dataset.surah),1);return}
  if(t.hasAttribute('data-resume')){go('quran',state.last.s,state.last.a);return}
