@@ -1,0 +1,37 @@
+name: Bundle complete Hisn al-Muslim
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/hisn-data.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download licensed Hisn data
+        run: |
+          python - <<'PY'
+          import json,urllib.request,pathlib
+          url='https://raw.githubusercontent.com/asellam/HisnElMuslim/main/hisn.json'
+          data=json.load(urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Wird/1.0'}),timeout=90))
+          assert isinstance(data,dict) and len(data)>=50
+          chapters=[]
+          for title,entry in data.items():
+            adhkar=entry.get('Adhkar',[])
+            chapters.append({'title':title,'items':[{'text':x.get('Text',''),'count':x.get('Count',1),'reference':x.get('Reference','')} for x in adhkar if x.get('Text')]})
+          assert sum(len(c['items']) for c in chapters)>150
+          pathlib.Path('data/hisn.json').write_text(json.dumps(chapters,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          print(len(chapters),'chapters')
+          PY
+      - name: Save dataset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/hisn.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data: add offline Hisn al-Muslim chapters"
+            git push
+          fi
