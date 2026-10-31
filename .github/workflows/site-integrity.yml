@@ -32,7 +32,6 @@ jobs:
           if(pages.size!==604)throw Error('Page count incorrect');
           const hisn=JSON.parse(fs.readFileSync('data/hisn.json','utf8'));
           if(hisn.length<100)throw Error('Hisn incomplete');
-          const uri='https://cdn.islamic.network/quran/audio/64/ar.alafasy/';
-          if(!fs.readFileSync('index.html','utf8').includes(uri)||!fs.readFileSync('audio.html','utf8').includes(uri))throw Error('Audio integration missing');
+          for(const page of ['index.html','audio.html']){const html=fs.readFileSync(page,'utf8');if(!html.includes('cdn.islamic.network/quran/audio/64/')||!html.includes('ar.sudais'))throw Error('Audio integration missing: '+page);}
           console.log('114 surahs; 6236 verses; 604 pages; '+hisn.length+' Hisn chapters; audio wired');
           NODE
