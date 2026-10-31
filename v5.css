@@ -58,3 +58,9 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
  .nav::-webkit-scrollbar{height:3px}.nav::-webkit-scrollbar-thumb{background:var(--green)}
  .college-home{padding:9px}.college-home img{width:54px;height:54px}
 }
+
+/* Custom user-uploaded interface typeface. Missing file uses safe local system fallback. */
+@font-face{font-family:"WirdInterface";src:url("./fonts/ui/site.woff2") format("woff2"),url("./fonts/ui/site.ttf") format("truetype");font-style:normal;font-weight:100 900;font-display:swap}
+:root{--ui-font:"WirdInterface",system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+body,button,input,select,textarea{font-family:var(--ui-font)}
+.site-footer,.nav,.topbar,.panel,.btn{font-family:var(--ui-font)}
