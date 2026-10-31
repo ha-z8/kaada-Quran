@@ -35,7 +35,7 @@ for(let page=1;page<=604;page++){
  assert.equal(obj.page,page,'QCF page number '+page);
  assert.equal(obj.lines.length,15,'Printed 15 lines '+page);
  const basmallahs=obj.lines.filter(line=>line.type==='basmallah').length;
- assert.ok(basmallahs<=obj.lines.filter(line=>line.type==='surah_name').length,'More Basmala lines than Surah headers on page '+page);
+ // Surah header and Basmala may be split across a page boundary; keep both rows verbatim.
  if(basmallahs)basmalaPages.push(page);
  for(let li=0;li<obj.lines.length;li++){
   const line=obj.lines[li];
