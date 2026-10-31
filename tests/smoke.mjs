@@ -147,7 +147,12 @@ try{
  await page.locator('.surah-card').first().waitFor({timeout:15000});
  await page.goto('http://127.0.0.1:39393/#adhkar');
  await page.locator('.dhikr-card').first().waitFor({timeout:15000});
- 
+ await page.goto('http://127.0.0.1:39393/#quran/2/1');
+ await page.locator('#modeSelect').waitFor({timeout:15000});
+ await page.locator('#modeSelect').selectOption('plain');
+ assert.equal(await page.locator('.plain-verse').count(),286,'All Al-Baqarah verses available in normal reading without internet');
+ assert.equal(await page.locator('.plain-verse-number').count(),286,'Verse endings available offline');
+ await page.locator('#modeSelect').selectOption('mushaf');
  await context.setOffline(false);
  await page.setViewportSize({width:390,height:844});
  await page.goto('http://127.0.0.1:39393/#tasbih');
