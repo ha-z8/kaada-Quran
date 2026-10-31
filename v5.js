@@ -28,7 +28,10 @@ function head(){
  quran:['المصحف الشريف','القراءة والبحث والاستماع برواية حفص'],
  adhkar:['الأذكار وحصن المسلم','حصن المسلم مع العدادات والمراجع'],
  audio:['التلاوات الصوتية','استماع مباشر وتنزيل للاستماع دون إنترنت'],
- saved:['العلامات المرجعية','آياتك وموضع متابعتك']
+ saved:['العلامات المرجعية','آياتك وموضع متابعتك'],
+ tasbih:['المسبحة الإلكترونية','تسبيح وذكر بعداد محفوظ على جهازك'],
+ settings:['إعدادات وِرد','خصّص تجربة القراءة والصوتيات'],
+ sources:['المصادر والاعتمادات','مصادر النصوص والتلاوات والخطوط والتراخيص']
  }[state.view];
  $('pageHeading').textContent=info[0];$('pageSub').textContent=info[1];
 }
@@ -47,7 +50,7 @@ function route(){
   state.view='quran';state.surah=Math.max(1,Math.min(114,Number(parts[1])||state.last.s||1));
   state.ayah=Math.max(1,Math.min(surah(state.surah)?.verses.length||1,Number(parts[2])||1));
   state.page=verse(state.surah,state.ayah)?.page||1;
- }else state.view=['home','adhkar','audio','saved'].includes(v)?v:'home';
+ }else state.view=['home','adhkar','audio','saved','tasbih','settings','sources'].includes(v)?v:'home';
  render();
 }
 function render(){
@@ -58,6 +61,9 @@ function render(){
  if(state.view==='adhkar')renderHisn();
  if(state.view==='audio')renderAudio();
  if(state.view==='saved')renderSaved();
+ if(state.view==='tasbih')renderTasbih();
+ if(state.view==='settings')renderSettings();
+ if(state.view==='sources')renderSources();
 }
 function surahCards(){
  return state.quran.map(s=>'<button class="surah-card" data-surah="'+s.id+'"><span class="surah-index">'+num(s.id)+'</span><span><strong>سورة '+esc(s.name)+'</strong><small>'+num(s.verses.length)+' آية</small></span></button>').join('');
@@ -123,7 +129,20 @@ function renderHisn(){
 function renderAudio(){
  const r=AudioEngine.reciter();
  const surahs=state.quran.map(s=>'<option value="'+s.id+'" '+(s.id===state.surah?'selected':'')+'>'+esc(s.name)+'</option>').join('');
- $('content').innerHTML='<div class="section-head"><h2>التلاوات القرآنية</h2><span>الافتراضي: عبدالرحمن السديس</span></div><section class="audio-card"><h2>استمع داخل وِرد</h2><p class="muted">اختر القارئ والسورة والآية. تستخدم التسجيلات ملفات آيات مستقلة من EveryAyah، ويمكن تنزيل السورة المختارة للاستماع دون شبكة.</p><div class="audio-fields"><label for="readerSelect">القارئ</label><select id="readerSelect">'+AudioEngine.opts()+'</select><label for="audioSurah">السورة</label><select id="audioSurah">'+surahs+'</select><label for="audioAyah">الآية</label><input class="input" id="audioAyah" type="number" min="1" max="'+surah(state.surah).verses.length+'" value="'+state.ayah+'"></div><div class="chips"><button class="btn primary" data-audiomode="one">▶ الآية فقط</button><button class="btn" data-audiomode="surah">▶ إلى نهاية السورة</button><button class="btn" data-audiomode="quran">▶ إلى نهاية القرآن</button></div></section><section class="audio-card"><h2>الاستماع دون إنترنت</h2><p class="muted">نزّل آيات السورة المحددة بصوت '+esc(r.name)+'. تُحفظ التسجيلات محليًا في هذا المتصفح. لا تُنزَّل بقية السور أو القراء تلقائيًا، لتجنب استهلاك مساحة جهازك.</p><div class="chips"><button class="btn primary" id="downloadSurah">↓ تنزيل السورة</button><button class="btn" id="cancelDownload" disabled>إيقاف التنزيل</button><button class="btn" id="checkAudio">فحص المحفوظ</button></div><div class="progressbar"><div id="downloadProgress"></div></div><p class="download-status" id="downloadStatus">اختر سورة وقارئًا ثم نزّل التسجيلات للقراءة دون شبكة.</p></section><section class="audio-card"><h2>مصادر التلاوات</h2><p>التلاوات المشغّلة حاليًا من EveryAyah، بعد فحص روابط القراء المعروضين. تتوفر مصادر إضافية مرخّصة من <a href="https://qurancomplex.gov.sa/quran-audios/" target="_blank" rel="noopener" style="color:var(--green);text-decoration:underline">مجمع الملك فهد</a>، وخدمات <a href="https://quran.foundation/" target="_blank" rel="noopener" style="color:var(--green);text-decoration:underline">Quran Foundation</a> للمطورين.</p><p class="muted">قد لا يتيح مصدر الصوت التخزين في بعض المتصفحات، ويظهر عندها خطأ واضح بدل ادعاء نجاح التنزيل.</p></section>';
+ $('content').innerHTML='<div class="section-head"><h2>التلاوات القرآنية</h2><span>الافتراضي: عبدالرحمن السديس</span></div><section class="audio-card"><h2>استمع داخل وِرد</h2><p class="muted">اختر القارئ والسورة والآية. تستخدم التسجيلات ملفات آيات مستقلة من EveryAyah، ويمكن تنزيل السورة المختارة للاستماع دون شبكة.</p><div class="audio-fields"><label for="readerSelect">القارئ</label><select id="readerSelect">'+AudioEngine.opts()+'</select><label for="audioSurah">السورة</label><select id="audioSurah">'+surahs+'</select><label for="audioAyah">الآية</label><input class="input" id="audioAyah" type="number" min="1" max="'+surah(state.surah).verses.length+'" value="'+state.ayah+'"></div><div class="chips"><button class="btn primary" data-audiomode="one">▶ الآية فقط</button><button class="btn" data-audiomode="surah">▶ إلى نهاية السورة</button><button class="btn" data-audiomode="quran">▶ إلى نهاية القرآن</button></div></section><section class="audio-card"><h2>الاستماع دون إنترنت</h2><p class="muted">نزّل آيات السورة المحددة بصوت '+esc(r.name)+'. تُحفظ التسجيلات محليًا في هذا المتصفح. لا تُنزَّل بقية السور أو القراء تلقائيًا، لتجنب استهلاك مساحة جهازك.</p><div class="chips"><button class="btn primary" id="downloadSurah">↓ تنزيل السورة</button><button class="btn" id="cancelDownload" disabled>إيقاف التنزيل</button><button class="btn" id="checkAudio">فحص المحفوظ</button></div><div class="progressbar"><div id="downloadProgress"></div></div><p class="download-status" id="downloadStatus">اختر سورة وقارئًا ثم نزّل التسجيلات للقراءة دون شبكة.</p></section><section class="audio-card"><h2>إعدادات التشغيل</h2><div class="audio-fields"><label for="playbackSpeed">السرعة</label><select id="playbackSpeed"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select><label for="repeatCount">تكرار الآية</label><select id="repeatCount"><option value="1">مرة واحدة</option><option value="3">3 مرات</option><option value="5">5 مرات</option><option value="0">دائمًا</option></select></div><p class="muted">جميع معلومات المصادر والتراخيص في <a href="#sources" style="text-decoration:underline">صفحة المصادر</a>.</p></section>';
+}
+
+const TASBIH_ITEMS=['سُبْحَانَ اللَّهِ','الْحَمْدُ لِلَّهِ','اللَّهُ أَكْبَرُ','لَا إِلَهَ إِلَّا اللَّهُ','أَسْتَغْفِرُ اللَّهَ','سُبْحَانَ اللَّهِ وَبِحَمْدِهِ'];
+function renderTasbih(){
+ const selection=get('tasbih-selection',0),counts=get('tasbih-counts',{}),goal=get('tasbih-goal',33),n=Number(counts[selection])||0;
+ $('content').innerHTML='<div class="section-head"><h2>المسبحة الإلكترونية</h2><span>عداد خاص بكل ذكر، محفوظ على هذا الجهاز</span></div><section class="tasbih-panel"><p class="muted">اختر الذكر والعدد المطلوب، ثم اضغط الزر الكبير للتسبيح. يمكنك استخدام مفتاح المسافة أيضًا.</p><label>الذكر <select id="tasbihSelect">'+TASBIH_ITEMS.map((t,i)=>'<option value="'+i+'" '+(i===selection?'selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label><label>الهدف <select id="tasbihGoal">'+[33,100,300,1000].map(x=>'<option value="'+x+'" '+(x===goal?'selected':'')+'>'+num(x)+'</option>').join('')+'</select></label><div class="tasbih-word">'+esc(TASBIH_ITEMS[selection])+'</div><button class="tasbih-button" data-tasbih-add aria-label="اضغط للتسبيح"><small>اضغط للتسبيح</small><strong>'+num(n)+'</strong><span>من '+num(goal)+'</span></button><div class="progressbar"><div style="width:'+Math.min(100,n/goal*100)+'%"></div></div><div class="chips"><button class="btn" data-tasbih-minus>− إنقاص</button><button class="btn" data-tasbih-reset>إعادة العد</button><button class="btn primary" data-tasbih-next>الذكر التالي</button></div></section>';
+}
+function renderSettings(){
+ $('content').innerHTML='<div class="section-head"><h2>التفضيلات</h2><span>تُحفظ محليًا على الجهاز</span></div><section class="settings-grid"><div class="audio-card"><h2>القراءة</h2><label>طريقة العرض <select id="settingsMode"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>صفحات المصحف</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label><label>الخط <select id="settingsFont">'+[['Hafs','حفص العثماني'],['Naskh','النسخ'],['Digital','الرقمي']].map(([v,n])=>'<option value="'+v+'" '+(state.font===v?'selected':'')+'>'+n+'</option>').join('')+'</select></label><label>حجم الخط <input id="settingsSize" type="range" min="22" max="46" value="'+state.size+'"></label></div><div class="audio-card"><h2>التطبيق</h2><label>المظهر <select id="settingsTheme"><option value="light" '+(!state.dark?'selected':'')+'>نهاري</option><option value="dark" '+(state.dark?'selected':'')+'>ليلي</option></select></label><p>للاستخدام دون إنترنت افتح الموقع مرة واحدة مع الإنترنت حتى يحفظ ملفات القرآن والأذكار والخطوط. أما نسخة ويندوز فتقرأها من ملفاتها المدمجة.</p><p class="muted">التلاوات المضمّنة كاملة في نسخة ويندوز تُجهَّز في حزمة التوزيع خارج المتصفح.</p></div></section>';
+}
+function renderSources(){
+ const sources=[['مجمع الملك فهد لطباعة المصحف الشريف','الخطوط والنصوص والموارد القرآنية الرسمية، بما فيها بيانات بداية ونهاية السطر.','https://qurancomplex.gov.sa/quran-dev/'],['مجموعة خطوط مجمع الملك فهد','خطوط رسم المصحف الرسمي وخصائصها.','https://fonts.qurancomplex.gov.sa/'],['Quran Foundation','توثيق تخطيط المصحف وواجهات البيانات والتفسير، تحتاج بعض الواجهات بيانات اعتماد.','https://quran.foundation/'],['Quran.com للمطورين','وثائق وموارد المطورين المرتبطة بالمصحف.','https://quran.com/ar/developers'],['Al Quran Cloud','المصدر المستخدم لملف النص العثماني الأساسي في الموقع.','https://alquran.cloud/api'],['EveryAyah','مصدر ملفات التلاوة الصوتية آيةً آية؛ يخضع استخدامها لشروط الناشر.','https://everyayah.com/'],['HisnElMuslim (MIT)','بيانات حصن المسلم ومراجع الأذكار، الكتاب لسعيد بن علي بن وهف القحطاني.','https://github.com/asellam/HisnElMuslim']];
+ $('content').innerHTML='<div class="section-head"><h2>المصادر والتراخيص</h2><span>شفافية المصدر وحقوق الاستخدام</span></div><p class="muted">وجود رابط لمصدر لا يعني أن جميع محتوياته مدمجة حاليًا في التطبيق أو أن كل التسجيلات من إنتاج ذلك المصدر.</p><div class="sources-grid">'+sources.map(([n,d,u])=>'<article class="audio-card"><h2>'+esc(n)+'</h2><p>'+esc(d)+'</p><a target="_blank" rel="noopener noreferrer" href="'+esc(u)+'" class="btn small">فتح المصدر</a></article>').join('')+'</div><div class="notice">تعتمد النسخة الحالية للنص على Al Quran Cloud. لم تُدمج بعد جميع بيانات التنضيد أو التفسير الميسر الرسمية في التطبيق، ولا يُدّعى خلاف ذلك.</div>';
 }
 function closeDrawer(){state.selected=null;$('verseDrawer').hidden=true;$('overlay').hidden=true}
 function openDrawer(s,a){const v=verse(s,a);if(!v)return;state.selected={s,a};$('drawerTitle').textContent='سورة '+surah(s).name+' · الآية '+num(a);$('drawerText').textContent=v.text;$('drawerBookmark').textContent=state.marks.includes(s+':'+a)?'★ إزالة العلامة':'☆ حفظ العلامة';$('verseDrawer').hidden=false;$('overlay').hidden=false}
@@ -144,6 +163,7 @@ function searchView(value){
 function handleClick(e){
  const t=e.target.closest('button,[data-ayah]');if(!t)return;
  if(t.dataset.go){go(t.dataset.go);return}
+ if(t.hasAttribute('data-tasbih-add')||t.hasAttribute('data-tasbih-minus')||t.hasAttribute('data-tasbih-reset')||t.hasAttribute('data-tasbih-next')){const selected=get('tasbih-selection',0),counts=get('tasbih-counts',{});if(t.hasAttribute('data-tasbih-next'))save('tasbih-selection',(selected+1)%TASBIH_ITEMS.length);else if(t.hasAttribute('data-tasbih-reset'))counts[selected]=0;else if(t.hasAttribute('data-tasbih-minus'))counts[selected]=Math.max(0,(counts[selected]||0)-1);else counts[selected]=(counts[selected]||0)+1;save('tasbih-counts',counts);render();return}
  if(t.dataset.surah){go('quran',Number(t.dataset.surah),1);return}
  if(t.hasAttribute('data-resume')){go('quran',state.last.s,state.last.a);return}
  if(t.dataset.open){const v=pair(t.dataset.open);if(v){go('quran',v.s,v.a);setTimeout(()=>document.getElementById('ayah-'+v.s+'-'+v.a)?.scrollIntoView({block:'center'}),90)}return}
@@ -175,6 +195,14 @@ function events(){
   else if(t.id==='pageInput')location.hash='#page/'+Math.max(1,Math.min(604,Number(t.value)||1));
   else if(t.id==='readerSelect')AudioEngine.changeReciter(t.value);
   else if(t.id==='audioSurah'){state.surah=Number(t.value);state.ayah=1;render()}
+  else if(t.id==='tasbihSelect'){save('tasbih-selection',Number(t.value));render()}
+  else if(t.id==='tasbihGoal'){save('tasbih-goal',Number(t.value));render()}
+  else if(t.id==='settingsMode'){state.mode=t.value;save('mode',state.mode);render()}
+  else if(t.id==='settingsFont'){state.font=t.value;save('font',state.font);render()}
+  else if(t.id==='settingsTheme'){state.dark=t.value==='dark';save('dark',state.dark);render()}
+  else if(t.id==='settingsSize'){state.size=Number(t.value);save('size',state.size);render()}
+  else if(t.id==='playbackSpeed'){AudioEngine.setSpeed(Number(t.value))}
+  else if(t.id==='repeatCount'){AudioEngine.setRepeat(Number(t.value))}
   else if(t.id==='audioAyah'){state.ayah=Math.max(1,Math.min(surah(state.surah).verses.length,Number(t.value)||1))}
  });
  let pending;
