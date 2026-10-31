@@ -16,7 +16,7 @@ const RECITERS=[
 {id:'ar.minshawimujawwad',name:'المنشاوي — مجود',rate:64,folder:'Minshawy_Mujawwad_64kbps'},
 {id:'ar.abdulbasitmujawwad',name:'عبدالباسط — مجود',rate:192,folder:'Abdul_Basit_Mujawwad_128kbps'}
 ];
-const readAudio=(name,fallback)=>{try{const n=Number(localStorage.getItem('wird6:'+name));return Number.isFinite(n)&&n>=0?n:fallback}catch{return fallback}};
+const readAudio=(name,fallback)=>{try{const raw=localStorage.getItem('wird6:'+name);if(raw===null)return fallback;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:fallback}catch{return fallback}};
 let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false,speed=readAudio('speed',1),repeat=readAudio('repeat',1),volume=readAudio('volume',1),repeatDone=0;
 const el=id=>document.getElementById(id);
 const settings=()=>window.W;
