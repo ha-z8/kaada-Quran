@@ -1,4 +1,4 @@
-name: WIRD site integrity
+name: WIRD 5 integrity
 on:
   push:
     branches: [main]
@@ -13,25 +13,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check HTML JavaScript syntax and assets
+      - name: Validate Quran, Hisn, fonts, and JavaScript
         run: |
           node <<'NODE'
           const fs=require('fs'),vm=require('vm');
-          for(const file of ['index.html','adhkar.html','audio.html']){
-            const txt=fs.readFileSync(file,'utf8'),s=txt.match(/<script>([\s\S]*?)<\/script>/);
-            if(!s)throw Error('Missing script: '+file);
-            new vm.Script(s[1],{filename:file});
-            console.log('Syntax OK:',file);
-          }
-          new vm.Script(fs.readFileSync('sw.js','utf8'),{filename:'sw.js'});
-          const required=['data/quran.json','data/hisn.json','fonts/kfg-hafs.woff2','fonts/kfg-naskh.woff2','fonts/kfg-digital-v2.woff2','icon.svg','manifest.webmanifest'];
-          for(const file of required){if(!fs.existsSync(file)||fs.statSync(file).size<100)throw Error('Missing/empty: '+file)}
+          const required=['index.html','v5.css','v5.js','audio5.js','sw.js','manifest.webmanifest','icon.svg','data/quran.json','data/hisn.json','fonts/kfg-hafs.woff2','fonts/kfg-naskh.woff2','fonts/kfg-digital-v2.woff2'];
+          for(const file of required){if(!fs.existsSync(file)||fs.statSync(file).size<100)throw Error('Missing or empty '+file)}
+          for(const file of ['v5.js','audio5.js','sw.js']){new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});console.log('Syntax OK',file)}
+          const html=fs.readFileSync('index.html','utf8');
+          for(const script of ['audio5.js','v5.js'])if(!html.includes('src="./'+script+'"'))throw Error('Script not loaded '+script);
+          if(!fs.readFileSync('audio5.js','utf8').includes('ar.sudais'))throw Error('Sudais missing');
+          if(!fs.readFileSync('audio5.js','utf8').includes('cdn.islamic.network/quran/audio/'))throw Error('Audio CDN missing');
           const q=JSON.parse(fs.readFileSync('data/quran.json','utf8'));
-          if(q.length!==114||q.reduce((n,x)=>n+x.verses.length,0)!==6236)throw Error('Quran incomplete');
-          const pages=new Set(q.flatMap(x=>x.verses.map(v=>v.page)));
-          if(pages.size!==604)throw Error('Page count incorrect');
+          if(q.length!==114)throw Error('Expected 114 surahs');
+          const counts=q.reduce((a,s)=>a+s.verses.length,0);
+          if(counts!==6236)throw Error('Expected 6236 verses');
+          const pages=new Set(q.flatMap(s=>s.verses.map(v=>v.page)));
+          if(pages.size!==604)throw Error('Expected 604 pages');
           const hisn=JSON.parse(fs.readFileSync('data/hisn.json','utf8'));
-          if(hisn.length<100)throw Error('Hisn incomplete');
-          for(const page of ['index.html','audio.html']){const html=fs.readFileSync(page,'utf8');if(!html.includes('cdn.islamic.network/quran/audio/64/')||!html.includes('ar.sudais'))throw Error('Audio integration missing: '+page);}
-          console.log('114 surahs; 6236 verses; 604 pages; '+hisn.length+' Hisn chapters; audio wired');
+          if(!Array.isArray(hisn)||hisn.length<100||hisn.reduce((a,c)=>a+c.items.length,0)<250)throw Error('Hisn data incomplete');
+          console.log('Verified',q.length,'surahs',counts,'verses',pages.size,'pages',hisn.length,'Hisn chapters');
           NODE
