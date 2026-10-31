@@ -7,6 +7,8 @@ on:
       - 'desktop/**'
       - 'package.json'
       - 'tools/create-icons.mjs'
+      - 'tools/zip-share.mjs'
+      - 'Make-Windows-Offline.ps1'
 permissions:
   contents: read
 jobs:
@@ -43,4 +45,6 @@ jobs:
           if(-not (Test-Path 'dist/windows/win-unpacked/WIRD Quran.exe')){throw "Packaged executable missing"}
           Set-Content -Path 'dist/windows/WIRD_Quran_TEST.exe' -Value 'Zip64 format smoke test'
           node tools/zip-share.mjs
+          node tools/zip-share.mjs --folder
+          if(-not (Test-Path 'dist/share/WIRD_Quran_Offline_Windows_x64_Folder.zip')){throw 'Offline folder ZIP64 missing'}
           if(-not (Test-Path 'dist/share/WIRD_Quran_TEST.exe.zip')){throw "ZIP64 package missing"}
