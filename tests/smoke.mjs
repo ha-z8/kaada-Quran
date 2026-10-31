@@ -54,6 +54,29 @@ try{
  await page.goto('http://127.0.0.1:39393/#audio');
  await page.locator('#readerSelect').waitFor();
  assert.equal(await page.locator('#readerSelect').inputValue(),'ar.sudais','Default reciter Sudais');
+ const defaults=await page.evaluate(()=>AudioEngine.getPreferences());
+ assert.deepEqual(defaults,{speed:1,repeat:1,volume:1},'Audio must not start silent');
+ assert.equal(await page.locator('#readerSelect option').count(),12,'12 reciters available');
+ await page.locator('#playbackSpeed').selectOption('1.25');
+ await page.locator('#repeatCount').selectOption('3');
+ await page.locator('#playbackVolume').fill('0.8');
+ await page.locator('#playbackVolume').dispatchEvent('change');
+ assert.deepEqual(await page.evaluate(()=>AudioEngine.getPreferences()),{speed:1.25,repeat:3,volume:0.8},'Persisted audio options');
+ await page.goto('http://127.0.0.1:39393/#home');
+ await page.goto('http://127.0.0.1:39393/#audio');
+ await page.locator('#readerSelect').waitFor();
+ assert.equal(await page.locator('#playbackSpeed').inputValue(),'1.25');
+ assert.equal(await page.locator('#repeatCount').inputValue(),'3');
+ assert.equal(await page.locator('#playbackVolume').inputValue(),'0.8');
+ const audioSources=await page.evaluate(()=>{
+  const v=W.state.flat[0];
+  const sudais=AudioEngine.RECITERS.find(r=>r.id==='ar.sudais');
+  const ayoub=AudioEngine.RECITERS.find(r=>r.id==='ar.muhammadayoub');
+  return [AudioEngine.fileURL(sudais,v),AudioEngine.fileURL(ayoub,v)];
+ });
+ assert.ok(audioSources[0].endsWith('/Abdurrahmaan_As-Sudais_192kbps/001001.mp3'));
+ assert.ok(audioSources[1].endsWith('/Muhammad_Ayyoub_128kbps/001001.mp3'));
+
  await page.route('https://everyayah.com/data/**',route=>route.fulfill({status:200,headers:{'Content-Type':'audio/mpeg','Access-Control-Allow-Origin':'*'},body:Buffer.alloc(1200,67)}));
  await page.locator('#audioSurah').selectOption('1');
  await page.locator('#downloadSurah').click();
@@ -74,7 +97,21 @@ try{
  await page.locator('.surah-card').first().waitFor({timeout:15000});
  await page.goto('http://127.0.0.1:39393/#adhkar');
  await page.locator('.dhikr-card').first().waitFor({timeout:15000});
- assert.deepEqual(errors,[],'No uncaught JavaScript exceptions');
+ 
+ await context.setOffline(false);
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('http://127.0.0.1:39393/#tasbih');
+ await page.locator('.tasbih-button').waitFor();
+ assert.equal(await page.locator('.nav a').count(),8,'All navigation sections accessible on mobile');
+ const navVisible=await page.locator('.sidebar').isVisible();
+ assert.equal(navVisible,true,'Mobile navigation visible');
+ await page.goto('http://127.0.0.1:39393/#settings');
+ await page.locator('#settingsFont').waitFor();
+ await page.locator('#settingsFont').selectOption('Naskh');
+ await page.goto('http://127.0.0.1:39393/#quran/1/1');
+ await page.locator('.quran-page').waitFor();
+ assert.equal(await page.evaluate(()=>W.state.font),'Naskh','Separate Quran font control');
+assert.deepEqual(errors,[],'No uncaught JavaScript exceptions');
  console.log('PASS: 114 surahs, basmala, ayah actions, Hisn counters, Sudais, offline MP3 cache, offline reload, no JS errors');
  await context.close();
 }finally{if(browser)await browser.close();server.close()}
