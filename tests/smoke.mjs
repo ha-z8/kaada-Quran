@@ -77,6 +77,11 @@ try{
  assert.equal(await page.locator('#verseDrawer').isVisible(),true,'Ayah actions');
  assert.doesNotMatch(await page.locator('#drawerText').innerText(),/بِسْمِ/,'Al-Baqarah verse text must not duplicate its separate Basmala');
  assert.equal(await page.locator('[data-playmode]').count(),3,'Three play options');
+ await page.evaluate(()=>{window.__audioStartCalls=0;window.__actualAudioStart=AudioEngine.start;AudioEngine.start=()=>{window.__audioStartCalls++}});
+ await page.locator('[data-playmode="one"]').click();
+ assert.equal(await page.evaluate(()=>window.__audioStartCalls),1,'Playing one ayah must make exactly one audio request');
+ await page.evaluate(()=>{AudioEngine.start=window.__actualAudioStart});
+
  await page.locator('#drawerClose').click();
  await page.goto('http://127.0.0.1:39393/#adhkar');
  await page.locator('.dhikr-card').first().waitFor();
