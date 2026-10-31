@@ -36,7 +36,14 @@ try{
  await page.locator('.quran-page').waitFor({timeout:20000});
  await page.waitForFunction(()=>document.querySelector('.quran-text')?.dataset.verifiedLayout==='qcf-v2',{timeout:15000});
  assert.equal(await page.locator('.qcf-basmala').count(),1,'Madinah page has exactly one basmala');
- assert.match(await page.locator('.qcf-basmala').innerText(),/بِسْمِ.*اللّٰهِ.*الرَّحْمَٰنِ.*الرَّحِيمِ/,'Complete visible Basmala in Al-Baqarah');
+ assert.match(await page.locator('.qcf-basmala').innerText(),/بِسْمِ.*اللَّهِ.*الرَّحْمَٰنِ.*الرَّحِيمِ/,'Complete visible Basmala in Al-Baqarah');
+ await page.evaluate(()=>document.fonts.ready);
+ const desktopBasmala=await page.locator('.qcf-basmala-words').evaluate(el=>{
+   const outer=el.closest('.qcf-basmala').getBoundingClientRect(),rect=el.getBoundingClientRect();
+   return {text:el.textContent,width:rect.width,container:outer.width,left:rect.left,outerLeft:outer.left,right:rect.right,outerRight:outer.right,height:rect.height};
+ });
+ assert.ok(desktopBasmala.width>150&&desktopBasmala.height>20,'Desktop Basmala must have visible glyphs');
+ assert.ok(desktopBasmala.left>=desktopBasmala.outerLeft-3&&desktopBasmala.right<=desktopBasmala.outerRight+3,'Full desktop Basmala fits the Quran page');
  assert.equal(await page.locator('.qcf-lines').locator(':scope > div').count(),15,'15 complete printed lines including intentional blanks');
  await page.locator('#quranFontSize').fill('44');
  await page.locator('#quranFontSize').dispatchEvent('change');
@@ -46,6 +53,19 @@ try{
  await page.locator('#quranFontSize').dispatchEvent('change');
  await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor();
  
+ await page.locator('#modeSelect').selectOption('plain');
+ await page.locator('.plain-reader').waitFor();
+ assert.equal(await page.locator('.plain-verse').count(),286,'Normal reading shows every verse of Al-Baqarah');
+ assert.equal(await page.locator('.plain-basmala').count(),1,'Normal reading shows one Basmala');
+ assert.equal(await page.locator('.ayah-badge').count(),0,'Normal reading has no unwanted decorative circles');
+ assert.equal(await page.locator('.plain-verse-number').count(),286,'Normal verse-end numbers are complete');
+ await page.locator('.plain-verse[data-ayah="2:1"]').click();
+ assert.equal(await page.locator('#verseDrawer').isVisible(),true,'Normal reading supports ayah actions');
+ await page.locator('#drawerClose').click();
+ await page.locator('#modeSelect').selectOption('verses');
+ assert.equal(await page.locator('.verse-card').count(),286,'Verse-by-verse reading complete');
+ await page.locator('#modeSelect').selectOption('mushaf');
+ await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor();
  assert.ok((await page.locator('.qcf-line').count())>=4,'Exact Madinah page line layout');
  await page.goto('http://127.0.0.1:39393/#page/604');
  await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor({timeout:20000});
@@ -137,6 +157,24 @@ try{
  assert.equal(await page.locator('#navExtra').isVisible(),false,'Menu closes after navigation');
  const horizontal=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
  assert.ok(horizontal.scroll<=horizontal.client+3,'No global horizontal overflow on phone');
+ for(const width of [320,360,390,430,768]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('http://127.0.0.1:39393/#home');
+  await page.locator('.surah-card').first().waitFor();
+  const nav=await page.locator('.sidebar .nav>a, .sidebar .nav-more').evaluateAll(els=>els.filter(el=>getComputedStyle(el).display!=='none').map(el=>{
+    const r=el.getBoundingClientRect(),t=el.querySelector('span:last-child'),span=t?.getBoundingClientRect();
+    return {text:t?.innerText,left:r.left,right:r.right,top:r.top,bottom:r.bottom,labelWidth:span?.width||0,labelScrollWidth:t?.scrollWidth||0};
+  }));
+  if(width<=710){
+   assert.equal(nav.length,5,'Bottom navigation has five entries at width '+width);
+   for(let i=1;i<nav.length;i++)assert.ok(nav[i].right<=nav[i-1].left+2,'Navigation labels do not overlap at '+width);
+   for(const item of nav)assert.ok(item.labelScrollWidth<=item.labelWidth+3,'No truncated navigation label at '+width+': '+item.text);
+  }
+  const dims=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:document.documentElement.clientWidth}));
+  assert.ok(dims.scroll<=dims.width+3,'No horizontal overflow at '+width);
+}
+await page.setViewportSize({width:390,height:844});
+
  await page.goto('http://127.0.0.1:39393/#settings');
  await page.locator('#settingsFont').waitFor();
  await page.locator('#settingsFont').selectOption('Naskh');
@@ -153,6 +191,9 @@ try{
    return lines.filter(line=>line.scrollWidth>line.clientWidth+4).length;
  });
  assert.equal(clipped,0,'QCF printed lines must not overflow on a narrow phone screen');
+ const mobileBasmala=await page.locator('.qcf-basmala-words').evaluate(el=>{const box=el.closest('.qcf-basmala').getBoundingClientRect(),r=el.getBoundingClientRect();return {width:r.width,height:r.height,left:r.left,right:r.right,boxLeft:box.left,boxRight:box.right}});
+ assert.ok(mobileBasmala.height>12&&mobileBasmala.left>=mobileBasmala.boxLeft-4&&mobileBasmala.right<=mobileBasmala.boxRight+4,'Mobile Basmala fully visible');
+
 
 assert.deepEqual(errors,[],'No uncaught JavaScript exceptions');
  console.log('PASS: 114 surahs, basmala, ayah actions, Hisn counters, Sudais, offline MP3 cache, offline reload, no JS errors');
