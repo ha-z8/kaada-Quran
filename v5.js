@@ -352,7 +352,7 @@ function events(){
  $('drawerBookmark').onclick=()=>{if(state.selected)mark(state.selected.s,state.selected.a)};
  $('drawerLast').onclick=()=>{if(!state.selected)return;state.last=state.selected;save('last',state.last);toast('تم حفظ موضع القراءة');closeDrawer()};
  $('drawerCopy').onclick=()=>{if(!state.selected)return;navigator.clipboard.writeText(basmala({...verse(state.selected.s,state.selected.a),s:state.selected.s}).text).then(()=>{toast('تم نسخ الآية');closeDrawer()}).catch(()=>toast('تعذر النسخ'))};
- document.querySelectorAll('[data-playmode]').forEach(b=>b.onclick=()=>{if(state.selected)AudioEngine.start(state.selected.s,state.selected.a,b.dataset.playmode)});
+ // Verse action buttons are handled once by the delegated document click listener.
  document.addEventListener('click',e=>{if(!e.target.closest('.smart-search')){const list=$('searchSuggestions');if(list)list.hidden=true}});
  document.addEventListener('focusin',e=>{if(e.target.id==='mainSearch')qSuggestions()});
  document.addEventListener('keydown',e=>{if(e.target.id==='mainSearch'&&e.key==='Enter'){e.preventDefault();searchView(e.target.value);return}if(e.target.id==='mainSearch'&&e.key==='ArrowDown'){const option=document.querySelector('.search-suggestion');if(option){e.preventDefault();option.focus()}return}if(e.key==='Escape'){const list=$('searchSuggestions');if(list)list.hidden=true}if(e.key==='Escape')closeDrawer();if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ayah')){e.preventDefault();e.target.click()}});
