@@ -195,3 +195,6 @@ body,button,input,select,textarea{font-family:var(--ui-font)}
  .plain-reader{padding:15px 10px}
  .sidebar .nav>a span:last-child,.sidebar .nav-more span:last-child{font-size:9px}
 }
+
+/* Unicode fallback when a QCF page font is unavailable: readable verse ends, no floating circles. */
+.ayah-end-normal{font-family:"WirdNaskh","Traditional Arabic",serif;font-size:.72em;color:var(--green);white-space:nowrap;margin:0 4px;unicode-bidi:isolate}
