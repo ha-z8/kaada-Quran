@@ -1,0 +1,85 @@
+{
+  "name": "wird-offline-desktop",
+  "version": "6.0.0",
+  "private": true,
+  "description": "WIRD Quran, Hisn and offline recitations desktop",
+  "main": "desktop/main.cjs",
+  "author": "Hazaa Al Hazaa",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "download:audio": "node tools/download-default-audio.mjs --all",
+    "prepare:icons": "node tools/create-icons.mjs",
+    "build:win": "node tools/verify-offline.mjs && npm run prepare:icons && electron-builder --win nsis portable --x64",
+    "build:win:portable": "node tools/verify-offline.mjs && npm run prepare:icons && electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.18.0",
+    "sharp": "^0.34.0",
+    "png-to-ico": "^2.1.8"
+  },
+  "build": {
+    "appId": "sa.wird.desktop",
+    "productName": "WIRD Quran",
+    "compression": "normal",
+    "directories": {
+      "output": "dist/windows",
+      "buildResources": "assets"
+    },
+    "files": [
+      "index.html",
+      "v5.js",
+      "v5.css",
+      "audio5.js",
+      "audio.html",
+      "adhkar.html",
+      "sw.js",
+      "icon.svg",
+      "manifest.webmanifest",
+      "og-cover.svg",
+      "desktop/**",
+      "assets/**",
+      "fonts/**",
+      "data/**",
+      "!tests/**"
+    ],
+    "extraResources": [
+      {
+        "from": "offline-audio",
+        "to": "offline-audio",
+        "filter": [
+          "**/*.mp3",
+          "manifest.json"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "WIRD_Quran_Offline_Setup_${version}_${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "WIRD_Quran_Portable_${version}_${arch}.${ext}"
+    }
+  }
+}
