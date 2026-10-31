@@ -16,10 +16,11 @@ const RECITERS=[
 {id:'ar.minshawimujawwad',name:'المنشاوي — مجود',rate:64,folder:'Minshawy_Mujawwad_64kbps'},
 {id:'ar.abdulbasitmujawwad',name:'عبدالباسط — مجود',rate:192,folder:'Abdul_Basit_Mujawwad_128kbps'}
 ];
-let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false;
+let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false,speed=1,repeat=1,repeatDone=0;
 const el=id=>document.getElementById(id);
 const settings=()=>window.W;
 const reciter=()=>RECITERS.find(r=>r.id===settings()?.state.reciter)||RECITERS[0];
+const localFile=(r,v)=>'./offline-audio/'+r.folder+'/'+String(v.s).padStart(3,'0')+String(v.id).padStart(3,'0')+'.mp3';
 const fileURL=(r,v,rate=r.rate)=>r.folder?'https://everyayah.com/data/'+r.folder+'/'+String(v.s).padStart(3,'0')+String(v.id).padStart(3,'0')+'.mp3':BASE+rate+'/'+r.id+'/'+v.global+'.mp3';
 const opts=()=>RECITERS.map(r=>'<option value="'+r.id+'" '+(reciter().id===r.id?'selected':'')+'>'+r.name+'</option>').join('');
 function revoke(){if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null}}
@@ -31,6 +32,12 @@ async function playAt(index){
  el('dock').hidden=false;el('dockReciter').innerHTML=opts();
  status('سورة '+w.state.quran[v.s-1].name+' · الآية '+w.num(v.id),'جارٍ تجهيز التلاوة…');
  const r=reciter(),rates=(r.folder?[r.rate]:[r.rate,128,192,64]).filter((x,i,a)=>a.indexOf(x)===i);
+ if(window.wirdDesktop&&r.folder&&['ar.sudais','ar.muhammadayoub'].includes(r.id)){
+   player.src=localFile(r,v);player.playbackRate=speed;status('سورة '+w.state.quran[v.s-1].name+' · الآية '+w.num(v.id),'حزمة ويندوز المحلية · يعمل دون إنترنت');
+   try{await player.play();el('dockToggle').textContent='❚❚'}catch{el('dockToggle').textContent='▶';status('تعذر قراءة التسجيل المحلي','تحقق من اكتمال حزمة الصوت لويندوز')}
+   return;
+ }
+
  for(const rate of rates){
   const blob=await cached(fileURL(r,v,rate));
   if(request!==token){if(blob)URL.revokeObjectURL(blob);return}
@@ -40,11 +47,11 @@ async function playAt(index){
   if(!navigator.onLine){status('صوت غير متوفر دون إنترنت','نزّل هذه السورة أولًا بصوت القارئ المحدد');return}
   player.src=fileURL(r,v);status('سورة '+w.state.quran[v.s-1].name+' · الآية '+w.num(v.id),'القارئ '+r.name+' · بث عبر الإنترنت');
  }
- try{await player.play();if(request===token)el('dockToggle').textContent='❚❚'}catch{if(request===token){el('dockToggle').textContent='▶';el('dockStatus').textContent='اضغط ▶ لبدء الاستماع'}}
+ player.playbackRate=speed;try{await player.play();if(request===token)el('dockToggle').textContent='❚❚'}catch{if(request===token){el('dockToggle').textContent='▶';el('dockStatus').textContent='اضغط ▶ لبدء الاستماع'}}
 }
-function start(s,a,how){const w=settings();if(!w)return;const index=w.state.flat.findIndex(v=>v.s===Number(s)&&v.id===Number(a));if(index<0)return;mode=how;w.closeDrawer();playAt(index)}
-function next(delta=1,manual=false){const w=settings(),v=w.state.flat[current],n=w.state.flat[current+delta];if(!n||!v||(!manual&&(mode==='one'||mode==='surah'&&n.s!==v.s))){stop();return}playAt(current+delta);if(w.state.view==='quran'&&(w.state.surah!==n.s||w.state.page!==n.page)){w.state.surah=n.s;w.state.page=n.page;w.state.ayah=n.id;w.render()}}
-function stop(){token++;current=-1;el('audioElement').pause();el('audioElement').removeAttribute('src');el('audioElement').load();revoke();el('dock').hidden=true}
+function start(s,a,how){const w=settings();if(!w)return;const index=w.state.flat.findIndex(v=>v.s===Number(s)&&v.id===Number(a));if(index<0)return;mode=how;repeatDone=0;w.closeDrawer();playAt(index)}
+function next(delta=1,manual=false){if(!manual&&(repeat===0||repeatDone+1<repeat)){repeatDone++;const a=el('audioElement');a.currentTime=0;a.play().catch(()=>{});return}repeatDone=0;const w=settings(),v=w.state.flat[current],n=w.state.flat[current+delta];if(!n||!v||(!manual&&(mode==='one'||mode==='surah'&&n.s!==v.s))){stop();return}playAt(current+delta);if(w.state.view==='quran'&&(w.state.surah!==n.s||w.state.page!==n.page)){w.state.surah=n.s;w.state.page=n.page;w.state.ayah=n.id;w.render()}}
+function stop(){token++;repeatDone=0;current=-1;el('audioElement').pause();el('audioElement').removeAttribute('src');el('audioElement').load();revoke();el('dock').hidden=true}
 function changeReciter(id){if(!RECITERS.some(r=>r.id===id))return;const w=settings();w.state.reciter=id;w.save('reciter',id);if(current>=0)playAt(current);else w.render()}
 async function download(s){
  if(downloading)return;
@@ -90,5 +97,5 @@ function init(){
  el('dockToggle').onclick=()=>{const player=el('audioElement');if(player.paused)player.play().then(()=>el('dockToggle').textContent='❚❚').catch(()=>settings().toast('تعذر تشغيل التسجيل'));else{player.pause();el('dockToggle').textContent='▶'}};
  el('dockStop').onclick=stop;el('dockNext').onclick=()=>next(1,true);el('dockPrevious').onclick=()=>next(-1,true);
 }
-return {RECITERS,reciter,opts,start,stop,changeReciter,download,check,init,abort:()=>{cancel=true},fileURL};
+return {RECITERS,reciter,opts,start,stop,changeReciter,download,check,init,setSpeed:(v)=>{speed=v;el('audioElement').playbackRate=v},setRepeat:(v)=>{repeat=v;repeatDone=0},abort:()=>{cancel=true},fileURL};
 })();
