@@ -26,6 +26,10 @@ jobs:
           node --check tools/create-icons.mjs
           node --check tools/download-default-audio.mjs
           node --check tools/verify-offline.mjs
+          node --check tools/zip-share.mjs
+          $tokens=$null; $errors=$null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'Make-Windows-Offline.ps1'),[ref]$tokens,[ref]$errors) | Out-Null
+          if($errors.Count -ne 0){throw ($errors | Out-String)}
       - name: Install builder
         run: npm install
       - name: Create proper brand icons
@@ -37,3 +41,6 @@ jobs:
           npx electron-builder --win dir --x64 --publish never
           if($LASTEXITCODE -ne 0){throw "Electron packaging failed"}
           if(-not (Test-Path 'dist/windows/win-unpacked/WIRD Quran.exe')){throw "Packaged executable missing"}
+          Set-Content -Path 'dist/windows/WIRD_Quran_TEST.exe' -Value 'Zip64 format smoke test'
+          node tools/zip-share.mjs
+          if(-not (Test-Path 'dist/share/WIRD_Quran_TEST.exe.zip')){throw "ZIP64 package missing"}
