@@ -75,8 +75,39 @@ function render(){
 function surahCards(){
  return state.quran.map(s=>'<button class="surah-card" data-surah="'+s.id+'"><span class="surah-index">'+num(s.id)+'</span><span><strong>سورة '+esc(s.name)+'</strong><small>'+num(s.verses.length)+' آية</small></span></button>').join('');
 }
+
+function qSearch(q,max=100){
+ const key=norm(q);if(!key)return [];
+ const exact=String(q).trim().match(/^([0-9]{1,3})\s*[:：]\s*([0-9]{1,3})$/);
+ if(exact){const v=verse(+exact[1],+exact[2]);return v?[{...v,s:+exact[1]}]:[]}
+ const terms=key.split(' ').filter(Boolean),found=[];
+ for(const c of state.quran){if(norm(c.name).includes(key))found.push({type:'surah',s:c.id,name:c.name,rank:0})}
+ for(const v of state.flat){const t=norm(v.text);if(terms.every(w=>t.includes(w)))found.push({...v,type:'ayah',rank:t.startsWith(key)?0:t.includes(key)?1:2})}
+ return found.sort((a,b)=>a.rank-b.rank||a.s-b.s||(a.id||0)-(b.id||0)).slice(0,max);
+}
+function qHighlight(text,q){
+ const terms=norm(q).split(' ').filter(Boolean);if(!terms.length)return esc(text);
+ const original=[...String(text)],map=[],chars=[];
+ original.forEach((char,i)=>{const normalized=norm(char);for(const ch of normalized){chars.push(ch);map.push(i)}});
+ const normalized=chars.join(''),hit=new Set();
+ for(const term of terms){let p=0;while((p=normalized.indexOf(term,p))!==-1){for(let i=map[p];i<=map[p+term.length-1];i++)hit.add(i);p+=term.length}}
+ let output='',marked=false;
+ original.forEach((ch,i)=>{if(hit.has(i)&&!marked){output+='<mark>';marked=true}if(!hit.has(i)&&marked){output+='</mark>';marked=false}output+=esc(ch)});
+ return output+(marked?'</mark>':'');
+}
+function qSearchBar(){
+ return '<div class="smart-search"><div class="smart-search-field"><span class="smart-search-symbol" aria-hidden="true">⌕</span><input id="mainSearch" type="search" class="input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="searchSuggestions" autocomplete="off" placeholder="ابحث عن آية، كلمة، سورة، أو اكتب 2:255" value="'+esc(state.search)+'"><button type="button" id="searchButton" class="btn primary">بحث</button></div><div class="search-suggestions" id="searchSuggestions" role="listbox" hidden></div></div>';
+}
+function qSuggestions(){
+ const field=$('mainSearch'),list=$('searchSuggestions');if(!field||!list)return;
+ state.search=field.value;const q=field.value.trim();if(!q){list.hidden=true;field.setAttribute('aria-expanded','false');return}
+ const hits=qSearch(q,8);
+ list.innerHTML='<div class="search-suggestion-header">نتائج مقترحة <span>'+num(hits.length)+'</span></div>'+hits.map(v=>v.type==='surah'?'<button type="button" class="search-suggestion" role="option" data-surah="'+v.s+'"><span class="result-kind">سورة</span><span><b>'+qHighlight(v.name,q)+'</b><small>الانتقال إلى السورة</small></span><span class="result-arrow">←</span></button>':'<button type="button" class="search-suggestion" role="option" data-open="'+v.s+':'+v.id+'"><span class="result-kind">آية '+num(v.id)+'</span><span><b>سورة '+esc(surah(v.s).name)+'</b><small>'+qHighlight(basmala(v).text.slice(0,140),q)+'</small></span><span class="result-arrow">←</span></button>').join('')+(!hits.length?'<div class="search-empty">لم نجد نتائج، جرّب كلمة أقصر.</div>':'')+'<button id="searchAll" type="button" class="search-all">عرض جميع نتائج البحث ←</button>';
+ list.hidden=false;field.setAttribute('aria-expanded','true');
+}
+
 function renderHome(){
- $('content').innerHTML='<section class="hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>اقرأ، واستمع، واجعل لك من الذكر نصيبًا.</p><button class="btn" data-resume>متابعة وردك ←</button></div><div class="hero-art" aria-hidden="true">۞</div></section><div class="cards3"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف الشريف</strong><p>صفحات القرآن، البحث، وحفظ مواضع القراءة.</p></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار وحصن المسلم</strong><p>أذكار موثقة بالمراجع وعدادات متابعة.</p></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات الصوتية</strong><p>استماع للآيات وتنزيل السور دون اتصال.</p></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة · ٦٠٤ صفحات</span></div><div class="search-box"><input class="input" id="mainSearch" type="search" placeholder="بحث بالآيات أو رقم السورة:الآية مثل 2:255" value="'+esc(state.search)+'"><button class="btn" id="searchButton">بحث</button></div><div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالله للدفاع الجوي"><div><strong>أُنشئ داخل كلية الملك عبدالله للدفاع الجوي</strong><p>هذا المشروع أُنشئ داخل كلية الملك عبدالله للدفاع الجوي، مع هوية مستقلة لوِرد.</p></div></section>'
+ $('content').innerHTML='<section class="hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>اقرأ، واستمع، واجعل لك من الذكر نصيبًا.</p><button class="btn" data-resume>متابعة وردك ←</button></div><div class="hero-art" aria-hidden="true">۞</div></section><div class="cards3"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف الشريف</strong><p>صفحات القرآن، البحث، وحفظ مواضع القراءة.</p></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار وحصن المسلم</strong><p>أذكار موثقة بالمراجع وعدادات متابعة.</p></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات الصوتية</strong><p>استماع للآيات وتنزيل السور دون اتصال.</p></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة · ٦٠٤ صفحات</span></div>'+qSearchBar()+'<div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالله للدفاع الجوي"><div><strong>أُنشئ داخل كلية الملك عبدالله للدفاع الجوي</strong><p>هذا المشروع أُنشئ داخل كلية الملك عبدالله للدفاع الجوي، مع هوية مستقلة لوِرد.</p></div></section>'
 }
 function renderSaved(){
  const rows=state.marks.map(key=>{const parts=key.split(':').map(Number),v=verse(parts[0],parts[1]);if(!v)return '';return '<button class="search-result" data-open="'+parts[0]+':'+parts[1]+'"><span class="tag">سورة '+esc(surah(parts[0]).name)+' · الآية '+num(parts[1])+'</span><p>'+esc(basmala({...v,s:parts[0]}).text)+'</p><small>فتح الموضع ←</small></button>'}).join('');
@@ -245,16 +276,9 @@ function openDrawer(s,a){const v=verse(s,a);if(!v)return;state.selected={s,a};$(
 function mark(s,a){const key=s+':'+a;state.marks=state.marks.includes(key)?state.marks.filter(v=>v!==key):[...state.marks,key];save('marks',state.marks);toast('تم تحديث العلامة المرجعية');closeDrawer();render()}
 function pair(text){const [s,a]=String(text).split(':').map(Number);return verse(s,a)?{s,a}:null}
 function searchView(value){
- state.search=value.trim();
- const exact=state.search.match(/^(\d{1,3})\s*[:：]\s*(\d{1,3})$/);
- let results=[];
- if(exact){
-  const s=Number(exact[1]),a=Number(exact[2]);if(verse(s,a))results=[{s,id:a,text:verse(s,a).text}];
- }else{
-  const terms=norm(state.search).split(' ').filter(Boolean);
-  if(terms.length)for(const v of state.flat){if(terms.every(term=>norm(v.text).includes(term))||norm(surah(v.s).name)===norm(state.search))results.push(v);if(results.length>=120)break}
- }
- $('content').innerHTML='<div class="section-head"><h2>البحث في القرآن</h2><span>'+num(results.length)+' نتيجة'+(results.length===120?' أولى':'')+'</span></div><div class="search-box"><input class="input" id="mainSearch" placeholder="كلمة أو عبارة أو 2:255" value="'+esc(state.search)+'"><button class="btn" id="clearSearch">مسح</button></div>'+(results.map(v=>'<button class="search-result" data-open="'+v.s+':'+v.id+'"><span class="tag">سورة '+esc(surah(v.s).name)+' · '+num(v.id)+'</span><p>'+esc(v.text)+'</p><small>فتح الآية ←</small></button>').join('')||'<div class="empty">لم تظهر نتائج، جرّب كلمة أقصر.</div>');
+ state.search=String(value||'').trim();
+ const matches=qSearch(state.search,120);
+ $('content').innerHTML='<div class="section-head"><h2>البحث في القرآن الكريم</h2><span>'+num(matches.length)+(matches.length===120?' نتيجة أولى':' نتيجة')+'</span></div>'+qSearchBar()+matches.map(v=>v.type==='surah'?'<button class="search-result" data-surah="'+v.s+'"><span class="tag">سورة</span><p>'+qHighlight(v.name,state.search)+'</p><small>فتح السورة ←</small></button>':'<button class="search-result" data-open="'+v.s+':'+v.id+'"><span class="tag">سورة '+esc(surah(v.s).name)+' · الآية '+num(v.id)+'</span><p>'+qHighlight(basmala(v).text,state.search)+'</p><small>فتح موضع الآية ←</small></button>').join('')+(matches.length?'':'<div class="empty">ما ظهرت نتائج. جرّب البحث بكلمة أقصر أو رقم السورة والآية.</div>');
 }
 function handleClick(e){
  const t=e.target.closest('button,[data-ayah]');if(!t)return;
@@ -275,7 +299,7 @@ function handleClick(e){
  if(t.dataset.copydhikr){const [g,i]=t.dataset.copydhikr.split(':').map(Number);navigator.clipboard.writeText(state.hisn[g].items[i].text).then(()=>toast('تم نسخ الذكر')).catch(()=>toast('تعذر النسخ'));return}
  if(t.dataset.playmode){if(state.selected)AudioEngine.start(state.selected.s,state.selected.a,t.dataset.playmode);return}
  if(t.dataset.audiomode){AudioEngine.start(state.surah,state.ayah,t.dataset.audiomode);return}
- if(t.id==='searchButton'){searchView(state.search);return}
+ if(t.id==='searchButton'||t.id==='searchAll'){searchView($('mainSearch')?.value||state.search);return}
  if(t.id==='clearSearch'){state.search='';render();return}
  if(t.id==='downloadSurah'){AudioEngine.download(state.surah);return}
  if(t.id==='downloadQCF'){downloadQCFOffline();return}
@@ -308,7 +332,7 @@ function events(){
  });
  let pending;
  document.addEventListener('input',e=>{
-  if(e.target.id==='mainSearch'){state.search=e.target.value;clearTimeout(pending);pending=setTimeout(()=>{searchView(state.search);$('mainSearch')?.focus()},300)}
+  if(e.target.id==='mainSearch'){state.search=e.target.value;clearTimeout(pending);pending=setTimeout(qSuggestions,90)}
   if(e.target.id==='hisnSearch'){state.hisnSearch=e.target.value;const pos=e.target.selectionStart;clearTimeout(pending);pending=setTimeout(()=>{render();const input=$('hisnSearch');input?.focus();input?.setSelectionRange(pos,pos)},240)}
  });
  $('navMore').onclick=()=>{const more=$('navMore'),extra=$('navExtra');const isOpen=extra.classList.toggle('open');more.setAttribute('aria-expanded',String(isOpen))};
@@ -318,7 +342,9 @@ function events(){
  $('drawerLast').onclick=()=>{if(!state.selected)return;state.last=state.selected;save('last',state.last);toast('تم حفظ موضع القراءة');closeDrawer()};
  $('drawerCopy').onclick=()=>{if(!state.selected)return;navigator.clipboard.writeText(basmala({...verse(state.selected.s,state.selected.a),s:state.selected.s}).text).then(()=>{toast('تم نسخ الآية');closeDrawer()}).catch(()=>toast('تعذر النسخ'))};
  document.querySelectorAll('[data-playmode]').forEach(b=>b.onclick=()=>{if(state.selected)AudioEngine.start(state.selected.s,state.selected.a,b.dataset.playmode)});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ayah')){e.preventDefault();e.target.click()}});
+ document.addEventListener('click',e=>{if(!e.target.closest('.smart-search')){const list=$('searchSuggestions');if(list)list.hidden=true}});
+ document.addEventListener('focusin',e=>{if(e.target.id==='mainSearch')qSuggestions()});
+ document.addEventListener('keydown',e=>{if(e.target.id==='mainSearch'&&e.key==='Enter'){e.preventDefault();searchView(e.target.value);return}if(e.target.id==='mainSearch'&&e.key==='ArrowDown'){const option=document.querySelector('.search-suggestion');if(option){e.preventDefault();option.focus()}return}if(e.key==='Escape'){const list=$('searchSuggestions');if(list)list.hidden=true}if(e.key==='Escape')closeDrawer();if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ayah')){e.preventDefault();e.target.click()}});
  window.addEventListener('hashchange',route);window.addEventListener('online',setConnection);window.addEventListener('offline',setConnection);
 }
 window.W={state,render,closeDrawer,save,toast,num,printedPage};
