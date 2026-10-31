@@ -4,16 +4,16 @@ const BASE='https://cdn.islamic.network/quran/audio/';
 const STORE='wird-audio-v5';
 const RECITERS=[
 {id:'ar.sudais',name:'عبدالرحمن السديس',rate:192,folder:'Abdurrahmaan_As-Sudais_192kbps'},
-{id:'ar.alafasy',name:'مشاري راشد العفاسي',rate:128},
-{id:'ar.husary',name:'محمود خليل الحصري',rate:128},
-{id:'ar.minshawi',name:'محمد صديق المنشاوي',rate:128},
+{id:'ar.alafasy',name:'مشاري راشد العفاسي',rate:128,folder:'Alafasy_128kbps'},
+{id:'ar.husary',name:'محمود خليل الحصري',rate:128,folder:'Husary_128kbps'},
+{id:'ar.minshawi',name:'محمد صديق المنشاوي',rate:128,folder:'Minshawy_Murattal_128kbps'},
 {id:'ar.shuraim',name:'سعود الشريم',rate:128,folder:'Saood_ash-Shuraym_128kbps'},
 {id:'ar.abdulbasit',name:'عبدالباسط عبدالصمد',rate:192,folder:'Abdul_Basit_Murattal_192kbps'},
 {id:'ar.ajamy',name:'أحمد العجمي',rate:128,folder:'Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer.Com'},
-{id:'ar.hudhaify',name:'علي الحذيفي',rate:128},
+{id:'ar.hudhaify',name:'علي الحذيفي',rate:128,folder:'Hudhaify_128kbps'},
 {id:'ar.muhammadayoub',name:'محمد أيوب',rate:128,folder:'Muhammad_Ayyoub_128kbps'},
-{id:'ar.muhammadjibreel',name:'محمد جبريل',rate:128},
-{id:'ar.minshawimujawwad',name:'المنشاوي — مجود',rate:64},
+{id:'ar.muhammadjibreel',name:'محمد جبريل',rate:128,folder:'Muhammad_Jibreel_128kbps'},
+{id:'ar.minshawimujawwad',name:'المنشاوي — مجود',rate:64,folder:'Minshawy_Mujawwad_64kbps'},
 {id:'ar.abdulbasitmujawwad',name:'عبدالباسط — مجود',rate:192,folder:'Abdul_Basit_Mujawwad_128kbps'}
 ];
 let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false;
