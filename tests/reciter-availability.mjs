@@ -1,3 +1,4 @@
+// Availability checks run against the real CDN; they may fail during provider outages.
 import fs from 'node:fs';
 const script=fs.readFileSync('audio5.js','utf8');
 const re=/id:'([^']+)',name:'([^']+)',rate:(\d+)/g;
