@@ -35,6 +35,11 @@ function head(){
  }[state.view];
  $('pageHeading').textContent=info[0];$('pageSub').textContent=info[1];
 }
+function closeMoreMenu(){
+ const more=$('navMore'),extra=$('navExtra');
+ if(more)more.setAttribute('aria-expanded','false');
+ if(extra)extra.classList.remove('open');
+}
 function go(view,s,a){
  let link='#'+view;
  if(view==='quran')link+='/'+(Number(s)||state.surah)+'/'+(Number(a)||1);
@@ -42,6 +47,7 @@ function go(view,s,a){
  window.scrollTo(0,0);
 }
 function route(){
+ closeMoreMenu();
  const parts=location.hash.slice(1).split('/'),v=parts[0];
  if(v==='page'){
   state.view='quran';state.page=Math.max(1,Math.min(604,Number(parts[1])||1));
@@ -304,6 +310,7 @@ function events(){
   if(e.target.id==='mainSearch'){state.search=e.target.value;clearTimeout(pending);pending=setTimeout(()=>{searchView(state.search);$('mainSearch')?.focus()},300)}
   if(e.target.id==='hisnSearch'){state.hisnSearch=e.target.value;const pos=e.target.selectionStart;clearTimeout(pending);pending=setTimeout(()=>{render();const input=$('hisnSearch');input?.focus();input?.setSelectionRange(pos,pos)},240)}
  });
+ $('navMore').onclick=()=>{const more=$('navMore'),extra=$('navExtra');const isOpen=extra.classList.toggle('open');more.setAttribute('aria-expanded',String(isOpen))};
  $('theme').onclick=()=>{state.dark=!state.dark;save('dark',state.dark);look()};
  $('drawerClose').onclick=closeDrawer;$('overlay').onclick=closeDrawer;
  $('drawerBookmark').onclick=()=>{if(state.selected)mark(state.selected.s,state.selected.a)};
