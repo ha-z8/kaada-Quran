@@ -1,0 +1,39 @@
+name: WIRD Windows desktop compile check
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/windows-build-check.yml'
+      - 'desktop/**'
+      - 'package.json'
+      - 'tools/create-icons.mjs'
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check sources
+        shell: pwsh
+        run: |
+          node --check desktop/main.cjs
+          node --check desktop/preload.cjs
+          node --check tools/create-icons.mjs
+          node --check tools/download-default-audio.mjs
+          node --check tools/verify-offline.mjs
+      - name: Install builder
+        run: npm install
+      - name: Create proper brand icons
+        run: npm run prepare:icons
+      - name: Test unpacked Windows executable packaging (NOT fully offline audio)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force offline-audio | Out-Null
+          npx electron-builder --win dir --x64 --publish never
+          if($LASTEXITCODE -ne 0){throw "Electron packaging failed"}
+          if(-not (Test-Path 'dist/windows/win-unpacked/WIRD Quran.exe')){throw "Packaged executable missing"}
