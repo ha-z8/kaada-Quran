@@ -1,0 +1,28 @@
+name: Prepare complete Quran data
+on:
+  push:
+    paths:
+      - '.github/workflows/quran-data.yml'
+      - 'scripts/prepare_quran.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download and verify every verse
+        run: python scripts/prepare_quran.py
+      - name: Save Quran data to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/quran.json data/SOURCE.md
+          if ! git diff --cached --quiet; then
+            git commit -m "data: add verified complete Quran text"
+            git push
+          fi
