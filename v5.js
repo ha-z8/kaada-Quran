@@ -69,7 +69,7 @@ function surahCards(){
  return state.quran.map(s=>'<button class="surah-card" data-surah="'+s.id+'"><span class="surah-index">'+num(s.id)+'</span><span><strong>سورة '+esc(s.name)+'</strong><small>'+num(s.verses.length)+' آية</small></span></button>').join('');
 }
 function renderHome(){
- $('content').innerHTML='<section class="hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>اقرأ، واستمع، واجعل لك من الذكر نصيبًا.</p><button class="btn" data-resume>متابعة وردك ←</button></div><div class="hero-art" aria-hidden="true">۞</div></section><div class="cards3"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف الشريف</strong><p>صفحات القرآن، البحث، وحفظ مواضع القراءة.</p></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار وحصن المسلم</strong><p>أذكار موثقة بالمراجع وعدادات متابعة.</p></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات الصوتية</strong><p>استماع للآيات وتنزيل السور دون اتصال.</p></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة · ٦٠٤ صفحات</span></div><div class="search-box"><input class="input" id="mainSearch" type="search" placeholder="بحث بالآيات أو رقم السورة:الآية مثل 2:255" value="'+esc(state.search)+'"><button class="btn" id="searchButton">بحث</button></div><div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالعزيز الحربية"><div><strong>من هوية الكلية</strong><p>شعار كلية الملك عبدالعزيز الحربية، مع هوية وِرد المستقلة.</p></div></section>'
+ $('content').innerHTML='<section class="hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>اقرأ، واستمع، واجعل لك من الذكر نصيبًا.</p><button class="btn" data-resume>متابعة وردك ←</button></div><div class="hero-art" aria-hidden="true">۞</div></section><div class="cards3"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف الشريف</strong><p>صفحات القرآن، البحث، وحفظ مواضع القراءة.</p></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار وحصن المسلم</strong><p>أذكار موثقة بالمراجع وعدادات متابعة.</p></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات الصوتية</strong><p>استماع للآيات وتنزيل السور دون اتصال.</p></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة · ٦٠٤ صفحات</span></div><div class="search-box"><input class="input" id="mainSearch" type="search" placeholder="بحث بالآيات أو رقم السورة:الآية مثل 2:255" value="'+esc(state.search)+'"><button class="btn" id="searchButton">بحث</button></div><div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالله للدفاع الجوي"><div><strong>أُنشئ داخل كلية الملك عبدالله للدفاع الجوي</strong><p>هذا المشروع أُنشئ داخل كلية الملك عبدالله للدفاع الجوي، مع هوية مستقلة لوِرد.</p></div></section>'
 }
 function renderSaved(){
  const rows=state.marks.map(key=>{const parts=key.split(':').map(Number),v=verse(parts[0],parts[1]);if(!v)return '';return '<button class="search-result" data-open="'+parts[0]+':'+parts[1]+'"><span class="tag">سورة '+esc(surah(parts[0]).name)+' · الآية '+num(parts[1])+'</span><p>'+esc(v.text)+'</p><small>فتح الموضع ←</small></button>'}).join('');
@@ -90,12 +90,29 @@ function ayahHtml(v){
 }
 function toolbar(){
  const choose=state.quran.map(s=>'<option value="'+s.id+'" '+(state.surah===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('');
- return '<div class="reader-controls"><label>السورة <select id="surahSelect">'+choose+'</select></label><label>العرض <select id="modeSelect"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>صفحات المصحف</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label><label>الخط <select id="fontSelect"><option value="Hafs" '+(state.font==='Hafs'?'selected':'')+'>حفص العثماني</option><option value="Naskh" '+(state.font==='Naskh'?'selected':'')+'>النسخ</option><option value="Digital" '+(state.font==='Digital'?'selected':'')+'>الرقمي</option></select></label><button class="btn small push" data-size="-2">أ−</button><span class="muted">'+num(state.size)+'</span><button class="btn small" data-size="2">أ+</button></div>';
+ return '<div class="reader-controls"><label>السورة <select id="surahSelect">'+choose+'</select></label><label>العرض <select id="modeSelect"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>صفحات المصحف</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label><label>الخط <select id="fontSelect"><option value="Hafs" '+(state.font==='Hafs'?'selected':'')+'>حفص العثماني</option><option value="Naskh" '+(state.font==='Naskh'?'selected':'')+'>النسخ</option><option value="Digital" '+(state.font==='Digital'?'selected':'')+'>الرقمي</option></select></label><label class="reader-font-control" for="quranFontSize">حجم الآيات <input type="range" id="quranFontSize" min="22" max="46" value="'+state.size+'"><output id="quranFontSizeValue">'+num(state.size)+'</output></label><button class="btn small" data-size="-2" aria-label="تصغير خط المصحف">أ−</button><button class="btn small" data-size="2" aria-label="تكبير خط المصحف">أ+</button></div>';
 }
 function pageButtons(){
  return '<div class="pagenav"><button class="btn small" data-page="-1" '+(state.page===1?'disabled':'')+'>→ السابقة</button><label>صفحة <input class="input" id="pageInput" type="number" min="1" max="604" value="'+state.page+'"> من ٦٠٤</label><button class="btn small" data-page="1" '+(state.page===604?'disabled':'')+'>التالية ←</button></div>';
 }
 const QCF_FONT_CACHE=new Map();
+function fitMushafLines(){
+ const container=document.querySelector('.qcf-lines');
+ if(!container||!container.isConnected)return;
+ const lines=[...container.querySelectorAll('.qcf-line')];
+ if(!lines.length)return;
+ const base=Math.max(14,Math.min(51,Number(state.size)||32));
+ container.style.setProperty('--qcf-render-size',base+'px');
+ // Preserve the original 15-line pagination while ensuring long lines fit on narrow screens.
+ let scale=1;
+ for(const line of lines){
+  const width=line.clientWidth;
+  if(width>0&&line.scrollWidth>width)scale=Math.min(scale,(width-3)/line.scrollWidth);
+ }
+ container.style.setProperty('--qcf-render-size',Math.max(7,Math.floor(base*scale*100)/100)+'px');
+}
+window.addEventListener('resize',()=>requestAnimationFrame(fitMushafLines));
+
 async function upgradeMushaf(page){
  const target=document.querySelector('.quran-text');if(!target||state.mode!=='mushaf')return;
  const id=String(page).padStart(3,'0');
@@ -111,13 +128,15 @@ async function upgradeMushaf(page){
  const face=QCF_FONT_CACHE.get(id);
  const lines=data.lines.map(line=>{
   if(line.type==='surah_name'){const n=line.decor?.surah||1;return '<div class="qcf-surah">۞ سورة '+esc(surah(n).name)+' ۞</div>'}
-  if(line.type==='basmallah')return '<div class="qcf-basmala">﷽</div>';
+  if(line.type==='basmallah')return '<div class="qcf-basmala" lang="ar" aria-label="بسم الله الرحمن الرحيم">بِسْمِ اللّٰهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
+  if(line.type==='blank')return '<div class="qcf-line qcf-blank" aria-hidden="true"></div>';
   if(line.type!=='text')return '';
   const words=(line.words||[]).map(w=>{const p=w.location?.split(':');const key=p&&p.length>=2?p[0]+':'+p[1]:'';return '<span class="qcf-glyph" '+(key?'role="button" tabindex="0" data-ayah="'+esc(key)+'"':'')+'>'+esc(w.qpcV2||'')+'</span>'}).join(' ');
   return '<div class="qcf-line" dir="rtl">'+words+'</div>'
  }).join('');
  target.innerHTML='<div class="qcf-lines" style="font-family:\''+face+'\',serif">'+lines+'</div>';
  target.setAttribute('data-verified-layout','qcf-v2');
+ requestAnimationFrame(fitMushafLines);
 }
 function renderQuran(){
  const s=surah(state.surah);
@@ -131,7 +150,7 @@ function renderQuran(){
  }else{
   const page=state.pages[state.page],first=page?.[0];
   if(!first){$('content').innerHTML='<div class="empty">صفحة المصحف غير متاحة</div>';return}
-  html+=pageButtons()+'<article class="quran-page"><div class="qpage-header"><span>الجزء '+num(first.juz)+'</span><span>وِرد · حفص</span><span>صفحة '+num(state.page)+'</span></div><div class="quran-text">'+page.map(ayahHtml).join('')+'</div><div class="qpage-footer">﴿ '+num(state.page)+' ﴾</div></article>'+pageButtons()+'<div class="notice">حدود الصفحات صحيحة، لكن النص ليس تنضيدًا مطابقًا للأسطر الخمسة عشر في طبعة مصحف المدينة. لن نعرض تنسيقًا تقديريًا باعتباره نسخة رسمية.</div>';
+  html+=pageButtons()+'<article class="quran-page"><div class="qpage-header"><span>الجزء '+num(first.juz)+'</span><span>وِرد · حفص</span><span>صفحة '+num(state.page)+'</span></div><div class="quran-text">'+page.map(ayahHtml).join('')+'</div><div class="qpage-footer">﴿ '+num(state.page)+' ﴾</div></article>'+pageButtons()+'<div class="notice">تعرض الصفحة أسطر مصحف المدينة QCF V2 عند اكتمال تنزيل ملف الصفحة وخطها؛ وإن تعذّر تحميلها يظهر النص العثماني العادي دون حذف الآيات.</div>';
  }
  $('content').innerHTML=html;
  if(state.mode==='mushaf')upgradeMushaf(state.page);
@@ -274,6 +293,7 @@ function events(){
   else if(t.id==='settingsFont'){state.font=t.value;save('font',state.font);render()}
   else if(t.id==='settingsTheme'){state.dark=t.value==='dark';save('dark',state.dark);render()}
   else if(t.id==='settingsSize'){state.size=Number(t.value);save('size',state.size);render()}
+  else if(t.id==='quranFontSize'){state.size=Number(t.value);save('size',state.size);render()}
   else if(t.id==='playbackSpeed'){AudioEngine.setSpeed(Number(t.value))}
   else if(t.id==='repeatCount'){AudioEngine.setRepeat(Number(t.value))}
   else if(t.id==='playbackVolume'){AudioEngine.setVolume(Number(t.value))}
