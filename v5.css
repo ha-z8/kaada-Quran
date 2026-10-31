@@ -159,3 +159,39 @@ body,button,input,select,textarea{font-family:var(--ui-font)}
 .search-result mark,.search-suggestion mark{background:#f8dfa1;color:#342917;border-radius:3px;padding:0 2px;font-weight:750}
 .search-result:hover{box-shadow:var(--shadow)}
 @media(max-width:710px){.smart-search{margin:12px 0 17px}.smart-search-field{padding:7px 9px;gap:6px}.smart-search-field .btn{padding:9px 12px}.smart-search-symbol{font-size:24px}.search-suggestions{max-height:60vh}.search-suggestion{padding:10px 7px;gap:8px}.result-kind{min-width:52px;font-size:10px}.search-suggestion small{font-size:12px}}
+
+/* Reader 6.6 — two genuinely different scripts, never substitute a decorative verse marker. */
+.plain-reader{max-width:930px;margin:18px auto 20px;padding:38px 44px;border:1px solid var(--line);background:var(--warm);border-radius:17px;box-shadow:var(--shadow);color:var(--ink)}
+.plain-surah-heading{font:normal clamp(28px,3vw,39px)/1.9 "WirdNaskh","Traditional Arabic",serif;text-align:center;color:var(--green);border-bottom:1px solid var(--line);margin-bottom:12px}
+.plain-basmala{text-align:center;font:normal clamp(25px,2.5vw,39px)/2 "WirdNaskh","Traditional Arabic",serif;margin:12px auto 25px;max-width:100%;overflow-wrap:normal}
+.plain-verses{font-family:var(--qfont);font-size:var(--qsize);line-height:2.4;letter-spacing:0;word-spacing:.06em;text-align:justify;text-align-last:center;overflow-wrap:break-word;white-space:normal}
+.plain-verse{cursor:pointer;scroll-margin-top:85px;padding:2px 1px;border-radius:5px}
+.plain-verse:hover,.plain-verse:focus-visible{background:var(--pale);color:var(--green);outline:none}
+.plain-verse-number{font-family:"WirdNaskh","Traditional Arabic",serif;direction:rtl;white-space:nowrap;color:var(--green);font-size:.7em;font-weight:400;margin:0 5px}
+.qcf-font-info{color:var(--green);font-size:12px;background:var(--pale);padding:9px 12px;border-radius:10px;white-space:nowrap}
+.qcf-basmala{width:100%;min-width:0;max-width:100%;overflow:visible!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;text-align-last:center!important;white-space:nowrap!important;font:normal var(--qcf-render-size,32px)/1.5 "WirdNaskh","Traditional Arabic","Segoe UI",serif!important}
+.qcf-basmala-words{display:inline-block!important;max-width:100%;font-family:"WirdNaskh","Traditional Arabic","Segoe UI",serif!important;white-space:nowrap!important;line-height:1.5;unicode-bidi:isolate}
+.qcf-lines .qcf-basmala{min-height:0}
+.verse-card .verse-text{font-family:var(--qfont);overflow-wrap:break-word;line-height:2.3}
+.verse-card .basmala{font-family:"WirdNaskh","Traditional Arabic",serif;line-height:2;text-align:center}
+.sidebar .nav>a span:last-child{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1050px){
+ .plain-reader{padding:26px 23px}
+}
+@media(max-width:710px){
+ .plain-reader{padding:19px 14px;margin:12px auto}
+ .plain-verses{font-size:clamp(22px,var(--qsize),40px);line-height:2.2;text-align:justify}
+ .plain-surah-heading{font-size:26px}
+ .plain-basmala{font-size:clamp(22px,6.5vw,32px)}
+ .qcf-basmala{font-size:var(--qcf-render-size,25px)!important}
+ .qcf-font-info{grid-column:1/-1;text-align:center}
+ .sidebar .nav>a,.sidebar .nav-more{min-height:57px;max-width:100%;min-width:0;overflow:hidden;word-break:normal;white-space:nowrap}
+ .sidebar .nav>a span:last-child,.sidebar .nav-more span:last-child{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(9px,2.45vw,11px);line-height:1.55}
+ .sidebar .nav-extra-list>a{min-height:50px;max-width:100%;min-width:0;overflow:hidden;white-space:nowrap}
+ .sidebar .nav-extra-list>a span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .reader-font-control{grid-column:1/-1}
+}
+@media(max-width:360px){
+ .plain-reader{padding:15px 10px}
+ .sidebar .nav>a span:last-child,.sidebar .nav-more span:last-child{font-size:9px}
+}
