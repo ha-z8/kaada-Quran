@@ -1,0 +1,21 @@
+name: Quran text 6236 verse exact-source audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/quran.json'
+      - 'tests/quran-source-compare.mjs'
+      - '.github/workflows/quran-source-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/quran-source-compare.mjs
