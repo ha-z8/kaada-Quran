@@ -1,0 +1,1 @@
+# مصدر النص القرآني\n\nAPI: https://api.alquran.cloud/v1/quran/quran-uthmani\n\nEdition: quran-uthmani (Hafs). Retrieved using AlQuran.Cloud. Text must be preserved verbatim. Verify provenance and any distribution terms of the underlying Uthmani text before republishing.\n
