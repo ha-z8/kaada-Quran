@@ -48,3 +48,5 @@ jobs:
           if(!Array.isArray(hisn)||hisn.length<100||hisn.reduce((a,c)=>a+c.items.length,0)<250)throw Error('Hisn data incomplete');
           console.log('Verified',q.length,'surahs',counts,'verses',pages.size,'pages',hisn.length,'Hisn chapters');
           NODE
+      - name: Audit every Quran ayah and every QCF word / marker
+        run: node tests/quran-integrity.mjs
