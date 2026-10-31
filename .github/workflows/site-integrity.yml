@@ -1,4 +1,4 @@
-name: WIRD 5 integrity
+name: WIRD 6 source & Mushaf integrity
 on:
   push:
     branches: [main]
@@ -30,7 +30,21 @@ jobs:
           if(counts!==6236)throw Error('Expected 6236 verses');
           const pages=new Set(q.flatMap(s=>s.verses.map(v=>v.page)));
           if(pages.size!==604)throw Error('Expected 604 pages');
-          const hisn=JSON.parse(fs.readFileSync('data/hisn.json','utf8'));
+          
+          const allPages=[];
+          for(let i=1;i<=604;i++){
+            const id=String(i).padStart(3,'0'),json='data/mushaf/pages/page-'+id+'.json',font='fonts/qcf/QCF2'+id+'.ttf';
+            if(!fs.existsSync(json)||!fs.existsSync(font)||fs.statSync(font).size<10000)throw Error('Missing QCF original page '+id);
+            const page=JSON.parse(fs.readFileSync(json,'utf8'));
+            if(page.page!==i||!page.lines?.length)throw Error('Corrupt QCF page '+id);
+            for(const line of page.lines)if(line.type==='text'&&!line.words?.every(w=>w.qpcV2&&w.location))throw Error('Corrupt QCF glyph '+id);
+            allPages.push(page.lines.length);
+          }
+          if(fs.existsSync('assets/college-logo.png')&&fs.statSync('assets/college-logo.png').size<20000)throw Error('College image corrupt');
+          if(!fs.existsSync('desktop/main.cjs')||!fs.existsSync('desktop/preload.cjs')||!fs.existsSync('Make-Windows-Offline.ps1'))throw Error('Offline Windows build files missing');
+          new vm.Script(fs.readFileSync('desktop/main.cjs','utf8'),{filename:'desktop/main.cjs'});
+          console.log('Verified 604 exact QCF pages and fonts, total layout lines',allPages.reduce((a,b)=>a+b,0));
+const hisn=JSON.parse(fs.readFileSync('data/hisn.json','utf8'));
           if(!Array.isArray(hisn)||hisn.length<100||hisn.reduce((a,c)=>a+c.items.length,0)<250)throw Error('Hisn data incomplete');
           console.log('Verified',q.length,'surahs',counts,'verses',pages.size,'pages',hisn.length,'Hisn chapters');
           NODE
