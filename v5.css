@@ -48,3 +48,13 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 .dark .qcf-surah{color:#d6e9cf;border-color:#708977}
 @media(max-width:960px){.qcf-lines{min-height:570px}.qcf-line{font-size:clamp(16px,3.1vw,30px)}}
 @media(max-width:710px){.qcf-lines{min-height:490px}.qcf-line{font-size:clamp(11px,2.85vw,22px);line-height:1.9}.qcf-surah{font-size:22px}.qcf-basmala{font-size:26px}}
+
+.college-home{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:12px 18px;margin:22px 0}
+.college-home img{width:65px;height:65px;object-fit:contain;flex-shrink:0}
+.college-home p{margin:0;color:var(--muted);font-size:12px}
+@media(max-width:710px){
+ .sidebar{height:72px;overflow:hidden}.nav{overflow-x:auto;justify-content:flex-start;scroll-snap-type:x proximity}
+ .nav a{flex:0 0 75px;scroll-snap-align:center;font-size:10px;padding:4px 1px}
+ .nav::-webkit-scrollbar{height:3px}.nav::-webkit-scrollbar-thumb{background:var(--green)}
+ .college-home{padding:9px}.college-home img{width:54px;height:54px}
+}
