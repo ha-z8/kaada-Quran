@@ -206,7 +206,7 @@ async function runDiagnostics(){
  }}else if(navigator.onLine){
   try{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9000);let response;try{response=await fetch('https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/001001.mp3',{method:'HEAD',signal:controller.signal})}finally{clearTimeout(timer)}add('مصدر السديس',response.ok?'ok':'warn','HTTP '+response.status)}catch{add('مصدر السديس','warn','تعذر فحص المصدر حاليًا')}
  }else add('مصدر السديس','info','الاختبار الشبكي متجاوز لأن الجهاز دون اتصال');
- try{const [woff,ttf]=await Promise.all(['./fonts/ui/site.woff2','./fonts/ui/site.ttf'].map(async url=>{try{return (await fetch(url,{method:'HEAD'})).ok}catch{return false}}));add('خط واجهة الموقع',woff||ttf?'ok':'info',woff?'site.woff2 مرفوع':ttf?'site.ttf مرفوع':'لم يُرفع خط الواجهة بعد؛ يستخدم الموقع الخط الاحتياطي')}catch{}
+ try{const found=await Promise.all(['site.woff2','site.woff','site.ttf','site.otf'].map(async name=>{try{return (await fetch('./fonts/ui/'+name,{method:'HEAD'})).ok?name:null}catch{return null}}));const uploaded=found.find(Boolean);add('خط واجهة الموقع',uploaded?'ok':'info',uploaded?'مرفوع: '+uploaded:'لم يُرفع خط الواجهة بعد؛ يستخدم الموقع الخط الاحتياطي')}catch{}
  try{const estimate=await navigator.storage.estimate();add('مساحة تخزين الموقع','info',Math.round((estimate.usage||0)/1048576)+' ميجابايت مستخدمة')}catch{}
  el.innerHTML='<div class="diag-list">'+items.map(x=>'<div class="diag-item '+x.status+'"><b>'+esc(x.name)+'</b><span>'+esc(x.details)+'</span></div>').join('')+'</div>';
 }
