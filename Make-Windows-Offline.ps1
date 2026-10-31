@@ -1,43 +1,28 @@
 param([switch]$SkipDownload,[switch]$PortableOnly)
-$ErrorActionPreference="Stop"
+$ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Set-Location ..
-Write-Host "==============================================" -ForegroundColor Green
-Write-Host " WIRD 6 - Windows Offline Builder (x64)"
-Write-Host "=============================================="
-if(-not (Get-Command node -ErrorAction SilentlyContinue)){throw "Node.js 22+ required on the BUILD computer. Install Node.js first."}
+Write-Host "WIRD 6 - Windows x64 fully offline build" -ForegroundColor Green
+if(-not (Get-Command node -ErrorAction SilentlyContinue)){throw "Install Node.js 22+ on the build machine first."}
 if(-not (Get-Command npm -ErrorAction SilentlyContinue)){throw "npm is missing."}
-node --version
-Write-Host "Installing build dependencies..."
 npm install
 if($LASTEXITCODE -ne 0){throw "npm install failed"}
 if(-not $SkipDownload){
- Write-Host "Downloading all 6236 ayahs for Sudais and Muhammad Ayyoub..."
- node tools/download-default-audio.mjs --all
- if($LASTEXITCODE -ne 0){throw "Audio download incomplete; rerun this script to resume."}
+  Write-Host "Downloading the complete Quran for Sudais and Muhammad Ayyoub (12,472 MP3 files)."
+  node tools/download-default-audio.mjs --all
+  if($LASTEXITCODE -ne 0){throw "Audio download was incomplete. Re-run to resume."}
 }
 node tools/verify-offline.mjs
-if($LASTEXITCODE -ne 0){throw "Default two complete audio collections are not present; cannot build offline package."}
+if($LASTEXITCODE -ne 0){throw "Two full recordings are required before building."}
 npm run prepare:icons
-if($LASTEXITCODE -ne 0){throw "Windows icon preparation failed"}
-$env:CSC_IDENTITY_AUTO_DISCOVERY="false"
+if($LASTEXITCODE -ne 0){throw "Brand icon generation failed"}
+$env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
 if($PortableOnly){npx electron-builder --win portable --x64}
 else{npx electron-builder --win nsis portable --x64}
-if($LASTEXITCODE -ne 0){throw "electron-builder failed"}
-New-Item -ItemType Directory -Force "dist\share" | Out-Null
-$files=Get-ChildItem "dist\windows" -Filter "*.exe" | Where-Object { $_.Name -like "WIRD_Quran_*" }
-foreach($f in $files){
- $dst="dist\share\"+$f.Name+".zip"
- Write-Host "Creating shareable ZIP: $dst"
- Compress-Archive -LiteralPath $f.FullName -DestinationPath $dst -Force -CompressionLevel NoCompression
- if(-not (Test-Path $dst)){throw "ZIP creation failed"}
- Get-FileHash -Path $f.FullName -Algorithm SHA256 | Out-File ($f.FullName+".sha256.txt") -Encoding utf8
-}
-Write-Host "SUCCESS! Windows offline installers in dist\windows; shareable ZIPs in dist\share" -ForegroundColor Green
-Write-Host "The recipient needs no Node.js or internet. Windows x64 is required."node tools/zip-share.mjs
-if($LASTEXITCODE -ne 0){throw "ZIP64 shareable packages could not be created"}
-Get-ChildItem "dist\\windows" -Filter "WIRD_Quran_*.exe" | ForEach-Object {
+if($LASTEXITCODE -ne 0){throw "Windows build failed"}
+node tools/zip-share.mjs
+if($LASTEXITCODE -ne 0){throw "ZIP64 packaging failed"}
+Get-ChildItem "dist\windows" -Filter "WIRD_Quran_*.exe" | ForEach-Object {
   Get-FileHash -Path $_.FullName -Algorithm SHA256 | Out-File ($_.FullName + ".sha256.txt") -Encoding utf8
 }
-Write-Host "SUCCESS! Windows offline installers in dist\windows; shareable ZIPs in dist\share" -ForegroundColor Green
-Write-Host "The recipient needs no Node.js or internet. Windows x64 is required."
+Write-Host "SUCCESS: installable .exe files in dist/windows, shareable .zip files in dist/share." -ForegroundColor Green
+Write-Host "Recipients can run the files without Node.js or internet on Windows x64."
