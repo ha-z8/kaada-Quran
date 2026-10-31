@@ -26,6 +26,13 @@ try{
  await page.locator('.quran-page').waitFor({timeout:20000});
  await page.waitForFunction(()=>document.querySelector('.quran-text')?.dataset.verifiedLayout==='qcf-v2',{timeout:15000});
  assert.equal(await page.locator('.qcf-basmala').count(),1,'Madinah page has exactly one basmala');
+ assert.ok((await page.locator('.qcf-line').count())>=4,'Exact Madinah page line layout');
+ await page.goto('http://127.0.0.1:39393/#page/604');
+ await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor({timeout:20000});
+ assert.ok((await page.locator('.qcf-line').count())>=3,'Last Madinah page line layout');
+ await page.goto('http://127.0.0.1:39393/#quran/2/1');
+ await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor({timeout:20000});
+
  await page.locator('.qcf-glyph[data-ayah="2:1"]').first().click();
  assert.equal(await page.locator('#verseDrawer').isVisible(),true,'Ayah actions');
  assert.equal(await page.locator('[data-playmode]').count(),3,'Three play options');
@@ -36,6 +43,14 @@ try{
  assert.ok((await first.locator('.count-button').innerText()).includes('٠'));
  await first.locator('.count-button').click();
  assert.ok((await page.locator('.dhikr-card').first().locator('.count-button').innerText()).includes('١'));
+ await page.goto('http://127.0.0.1:39393/#tasbih');
+ await page.locator('.tasbih-button').waitFor();
+ await page.locator('[data-tasbih-add]').click();
+ assert.ok((await page.locator('.tasbih-button strong').innerText()).includes('١'));
+ await page.goto('http://127.0.0.1:39393/#sources');
+ await page.locator('.sources-grid a').first().waitFor();
+ await page.goto('http://127.0.0.1:39393/#settings');
+ await page.locator('#downloadQCF').waitFor();
  await page.goto('http://127.0.0.1:39393/#audio');
  await page.locator('#readerSelect').waitFor();
  assert.equal(await page.locator('#readerSelect').inputValue(),'ar.sudais','Default reciter Sudais');
