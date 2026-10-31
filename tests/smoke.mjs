@@ -22,6 +22,16 @@ try{
  await page.goto('http://127.0.0.1:39393/',{waitUntil:'domcontentloaded'});
  await page.locator('.surah-card').first().waitFor({timeout:30000});
  assert.equal(await page.locator('.surah-card').count(),114,'Surah index');
+ await page.locator('#mainSearch').fill('الرحمن');
+ await page.locator('.search-suggestions:not([hidden])').waitFor();
+ assert.ok((await page.locator('.search-suggestion').count())>0,'Live search suggestions appear');
+ assert.ok((await page.locator('.search-suggestion mark').count())>0,'Matched Quran words are visually highlighted');
+ await page.locator('#mainSearch').fill('2:255');
+ await page.locator('.search-suggestion[data-open="2:255"]').waitFor();
+ await page.locator('#mainSearch').press('Enter');
+ await page.locator('.search-result[data-open="2:255"]').waitFor();
+ await page.goto('http://127.0.0.1:39393/#home');
+
  await page.locator('[data-surah="2"]').first().click();
  await page.locator('.quran-page').waitFor({timeout:20000});
  await page.waitForFunction(()=>document.querySelector('.quran-text')?.dataset.verifiedLayout==='qcf-v2',{timeout:15000});
