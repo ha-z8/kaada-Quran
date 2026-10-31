@@ -1,0 +1,45 @@
+name: Import Madinah Mushaf QCF V2 604 pages
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/madinah-mushaf.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download educational QCF V2 data and original fonts
+        run: |
+          git lfs version
+          GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/manaf/KFGQPC-Madinah-Mushaf.git /tmp/KFGQPC-Madinah-Mushaf
+          cd /tmp/KFGQPC-Madinah-Mushaf
+          git lfs pull --include="Al_Madinah_Mushaf_Win_Setup-2.1.zip"
+          cd "$GITHUB_WORKSPACE"
+          python3 tools/import-madinah-qcf.py
+      - name: Document data attribution
+        run: |
+          mkdir -p data/mushaf
+          cat > data/mushaf/ATTRIBUTION.md <<'EOF'
+          KFGQPC / Quran Complex Font V2 (Madinah Mushaf) data and fonts
+          © King Fahd Glorious Quran Printing Complex — https://qurancomplex.gov.sa/
+          Layout derived from Quranic Universal Library (QUL) / Tarteel — https://qul.tarteel.ai/
+          Original KFGQPC installer mirror: https://github.com/manaf/KFGQPC-Madinah-Mushaf
+          Data files and fonts are NOT MIT licensed, and must not be sold or modified as Quran text.
+          Used for educational purposes. Verify rights before further redistribution.
+          EOF
+      - name: Verify integrity and commit
+        run: |
+          test "$(find data/mushaf/pages -name 'page-*.json' | wc -l)" -eq 604
+          test "$(find fonts/qcf -name 'QCF2*.ttf' | wc -l)" -eq 604
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/mushaf fonts/qcf
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: verified 604 Madinah Mushaf QCF V2 page layouts and fonts"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
