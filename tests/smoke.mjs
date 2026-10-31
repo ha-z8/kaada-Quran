@@ -26,6 +26,16 @@ try{
  await page.locator('.quran-page').waitFor({timeout:20000});
  await page.waitForFunction(()=>document.querySelector('.quran-text')?.dataset.verifiedLayout==='qcf-v2',{timeout:15000});
  assert.equal(await page.locator('.qcf-basmala').count(),1,'Madinah page has exactly one basmala');
+ assert.match(await page.locator('.qcf-basmala').innerText(),/بِسْمِ.*اللّٰهِ.*الرَّحْمَٰنِ.*الرَّحِيمِ/,'Complete visible Basmala in Al-Baqarah');
+ assert.equal(await page.locator('.qcf-lines').locator(':scope > div').count(),15,'15 complete printed lines including intentional blanks');
+ await page.locator('#quranFontSize').fill('44');
+ await page.locator('#quranFontSize').dispatchEvent('change');
+ await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor();
+ assert.equal(await page.evaluate(()=>W.state.size),44,'QCF reader font size control is connected');
+ await page.locator('#quranFontSize').fill('32');
+ await page.locator('#quranFontSize').dispatchEvent('change');
+ await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor();
+ 
  assert.ok((await page.locator('.qcf-line').count())>=4,'Exact Madinah page line layout');
  await page.goto('http://127.0.0.1:39393/#page/604');
  await page.locator('.quran-text[data-verified-layout="qcf-v2"]').waitFor({timeout:20000});
@@ -109,6 +119,13 @@ try{
  assert.equal(await page.locator('.nav a').count(),8,'All navigation sections accessible on mobile');
  const navVisible=await page.locator('.sidebar').isVisible();
  assert.equal(navVisible,true,'Mobile navigation visible');
+ await page.locator('#navMore').click();
+ assert.equal(await page.locator('#navExtra').isVisible(),true,'Additional navigation opens on mobile');
+ await page.locator('#navExtra a[href="#settings"]').click();
+ await page.locator('#settingsFont').waitFor();
+ assert.equal(await page.locator('#navExtra').isVisible(),false,'Menu closes after navigation');
+ const horizontal=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
+ assert.ok(horizontal.scroll<=horizontal.client+3,'No global horizontal overflow on phone');
  await page.goto('http://127.0.0.1:39393/#settings');
  await page.locator('#settingsFont').waitFor();
  await page.locator('#settingsFont').selectOption('Naskh');
