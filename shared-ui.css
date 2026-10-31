@@ -1,0 +1,7 @@
+/* WIRD unified interface — Quran, Hisn and recitations */
+:root{--w-green:#164a3b;--w-soft:#ecf3ea;--w-cream:#f5f6f0;--w-gold:#c7a568;--w-border:#e1e8df}
+body{background:var(--w-cream)}.header,.head,.top,.side{font-family:system-ui,-apple-system,Tahoma,Arial,sans-serif}.brand,.logo{letter-spacing:0}.brand img,.logo img{object-fit:contain}
+.wird-footer{margin:42px auto 12px;max-width:900px;text-align:center;color:#667b70;font-family:system-ui,Tahoma,sans-serif;font-size:13px;line-height:2}.wird-footer .dedication{color:#2b7556;font-weight:700;font-size:15px}.wird-footer .credit{font-size:12px}.wird-footer a{text-decoration:underline}
+body.dark .wird-footer{color:#c9d8cc}body.dark .wird-footer .dedication{color:#bbdfbc}
+.wird-nav{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.wird-nav a{font-size:13px;font-weight:650;color:#285942;background:#edf4ec;border-radius:10px;padding:9px 13px;text-decoration:none}.wird-nav a[aria-current=page]{background:#176b53;color:white}body.dark .wird-nav a{background:#294535;color:#dcf0e3}body.dark .wird-nav a[aria-current=page]{background:#3b785c}
+@media(max-width:700px){.wird-nav a{font-size:12px;padding:7px 9px}.wird-footer{margin:25px auto 16px;padding:0 12px}}
