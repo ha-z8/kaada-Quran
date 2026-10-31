@@ -1,0 +1,9 @@
+node_modules/
+dist/
+offline-audio/
+*.log
+assets/icon.ico
+assets/icon.png
+.env
+.env.*
+!*.example
