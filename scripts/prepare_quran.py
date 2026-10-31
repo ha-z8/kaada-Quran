@@ -33,8 +33,12 @@ for idx, surah in enumerate(surahs, start=1):
     for number, ayah in enumerate(verses, start=1):
         if ayah["numberInSurah"] != number or not ayah["text"].strip():
             raise ValueError(f"Bad ayah: {idx}:{number}")
-        clean.append({"id": number, "text": ayah["text"]})
+        clean.append({"id": number, "text": ayah["text"], "page": ayah["page"], "juz": ayah["juz"]})
     out.append({"id": idx, "name": surah["name"].removeprefix("سُورَةُ ").removeprefix("سورة "), "verses": clean})
+if not all(1 <= v["page"] <= 604 and 1 <= v["juz"] <= 30 for sur in out for v in sur["verses"]):
+    raise ValueError("Invalid page metadata")
+if len({v["page"] for sur in out for v in sur["verses"]}) != 604:
+    raise ValueError("Incomplete 604-page metadata")
 if sum(len(s["verses"]) for s in out) != 6236:
     raise ValueError("Verse count mismatch")
 (ROOT / "data").mkdir(exist_ok=True)
