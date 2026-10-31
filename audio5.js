@@ -16,7 +16,8 @@ const RECITERS=[
 {id:'ar.minshawimujawwad',name:'المنشاوي — مجود',rate:64,folder:'Minshawy_Mujawwad_64kbps'},
 {id:'ar.abdulbasitmujawwad',name:'عبدالباسط — مجود',rate:192,folder:'Abdul_Basit_Mujawwad_128kbps'}
 ];
-let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false,speed=1,repeat=1,repeatDone=0;
+const readAudio=(name,fallback)=>{try{const n=Number(localStorage.getItem('wird6:'+name));return Number.isFinite(n)&&n>=0?n:fallback}catch{return fallback}};
+let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false,speed=readAudio('speed',1),repeat=readAudio('repeat',1),volume=readAudio('volume',1),repeatDone=0;
 const el=id=>document.getElementById(id);
 const settings=()=>window.W;
 const reciter=()=>RECITERS.find(r=>r.id===settings()?.state.reciter)||RECITERS[0];
@@ -91,11 +92,12 @@ async function download(s){
 async function check(s){const w=settings(),r=reciter(),tracks=w.state.flat.filter(v=>v.s===Number(s));let count=0;try{const cache=await caches.open(STORE);for(const v of tracks)if(await cache.match(fileURL(r,v)))count++}catch{}const label=el('downloadStatus');if(label)label.textContent='المحفوظ '+w.num(count)+' من '+w.num(tracks.length)+' آية بصوت '+r.name}
 function init(){
  el('dockReciter').innerHTML=opts();
+ el('audioElement').volume=Math.min(1,Math.max(0,volume));
  el('dockReciter').onchange=e=>changeReciter(e.target.value);
  el('audioElement').onended=()=>next(1,false);
  el('audioElement').onerror=()=>{if(current>=0){status('تعذر تشغيل الملف الصوتي','هذا التسجيل غير متاح أو تعذر الوصول إليه. جرّب قارئًا آخر.');el('dockToggle').textContent='▶'}};
  el('dockToggle').onclick=()=>{const player=el('audioElement');if(player.paused)player.play().then(()=>el('dockToggle').textContent='❚❚').catch(()=>settings().toast('تعذر تشغيل التسجيل'));else{player.pause();el('dockToggle').textContent='▶'}};
  el('dockStop').onclick=stop;el('dockNext').onclick=()=>next(1,true);el('dockPrevious').onclick=()=>next(-1,true);
 }
-return {RECITERS,reciter,opts,start,stop,changeReciter,download,check,init,setSpeed:(v)=>{speed=v;el('audioElement').playbackRate=v},setRepeat:(v)=>{repeat=v;repeatDone=0},abort:()=>{cancel=true},fileURL};
+return {RECITERS,reciter,opts,start,stop,changeReciter,download,check,init,setSpeed:(v)=>{if(!Number.isFinite(v)||v<.5||v>2)return;speed=v;el('audioElement').playbackRate=v;try{localStorage.setItem('wird6:speed',String(v))}catch{}},setRepeat:(v)=>{if(!Number.isInteger(v)||v<0||v>20)return;repeat=v;repeatDone=0;try{localStorage.setItem('wird6:repeat',String(v))}catch{}},setVolume:(v)=>{if(!Number.isFinite(v)||v<0||v>1)return;volume=v;el('audioElement').volume=v;try{localStorage.setItem('wird6:volume',String(v))}catch{}},getPreferences:()=>({speed,repeat,volume}),abort:()=>{cancel=true},fileURL};
 })();
