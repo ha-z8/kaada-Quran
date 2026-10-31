@@ -64,3 +64,10 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 :root{--ui-font:"WirdInterface",system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
 body,button,input,select,textarea{font-family:var(--ui-font)}
 .site-footer,.nav,.topbar,.panel,.btn{font-family:var(--ui-font)}
+
+/* Health diagnostics */
+.diag-list{margin-top:17px;display:grid;gap:9px}
+.diag-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);background:var(--bg);padding:10px 13px;border-radius:11px;font-size:12px}
+.diag-item.ok{border-right:4px solid #399565}.diag-item.error{border-right:4px solid #c35454}.diag-item.warn{border-right:4px solid #cf9f48}.diag-item.info{border-right:4px solid var(--green)}
+.diag-item span{color:var(--muted);text-align:left}
+@media(max-width:700px){.diag-item{align-items:flex-start;flex-direction:column}.diag-item span{text-align:right}}
