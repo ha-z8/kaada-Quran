@@ -81,6 +81,7 @@ try{
  assert.equal(await page.locator('#audioAyah').count(),0,'No impossible seek-to-ayah for full-surah audio');
 
  await open('#settings');await page.locator('#settingsFont').waitFor();
+ await page.locator('#settingsMode').selectOption('plain');
  await open('#sources');await page.locator('.sources-grid a').first().waitFor();
  await open('#home');await page.evaluate(async()=>navigator.serviceWorker.ready);
  await ctx.setOffline(true);
