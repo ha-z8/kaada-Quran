@@ -79,6 +79,27 @@ try{
  await page.locator('[data-audiomode="surah"]').waitFor();
  assert.equal(await page.locator('[data-audiomode="one"]').count(),0,'Whole-surah recorder must not promise single ayah playback');
  assert.equal(await page.locator('#audioAyah').count(),0,'No impossible seek-to-ayah for full-surah audio');
+ // First verify optional surah-level download from the official catalog.
+ await page.route('https://cdn.mp3quran.net/audio/**',route=>route.fulfill({status:200,headers:{'Content-Type':'audio/mpeg','Access-Control-Allow-Origin':'*'},body:Buffer.alloc(14000,41)}));
+ await page.locator('#audioSurah').selectOption('1');
+ await page.locator('#downloadSurah').click();
+ await page.waitForFunction(()=>document.getElementById('downloadStatus')?.textContent.includes('تم حفظ'),{timeout:12000});
+ const savedFull=await page.evaluate(async()=>{
+  const url=AudioEngine.surahURL(AudioEngine.reciter(),1);
+  return Boolean(url&&await(await caches.open('wird-audio-v5')).match(url));
+ });
+ assert.equal(savedFull,true,'Full-surah audio download stored locally');
+ await page.unroute('https://cdn.mp3quran.net/audio/**');
+ // Verify per-ayah recordings still download independently.
+ await page.locator('#readerSelect').selectOption('ar.sudais');
+ await page.route('https://everyayah.com/data/**',route=>route.fulfill({status:200,headers:{'Content-Type':'audio/mpeg','Access-Control-Allow-Origin':'*'},body:Buffer.alloc(1200,42)}));
+ await page.locator('#audioSurah').selectOption('1');
+ await page.locator('#downloadSurah').click();
+ await page.waitForFunction(()=>document.getElementById('downloadStatus')?.textContent.includes('اكتمل'),{timeout:20000});
+ const savedAya=await page.evaluate(async()=>Boolean(await(await caches.open('wird-audio-v5')).match('https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/001001.mp3')));
+ assert.equal(savedAya,true,'Individual ayah audio download stored locally');
+ await page.unroute('https://everyayah.com/data/**');
+
 
  await open('#settings');await page.locator('#settingsFont').waitFor();
  await page.locator('#settingsMode').selectOption('plain');
