@@ -3,9 +3,10 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=v=>String(v??'').normalize('NFKD').replace(/[\u064b-\u065f\u0670\u06d6-\u06ed]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ـ/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 const num=v=>Number(v).toLocaleString('ar-SA');
+const dayKey=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 function get(k,defaultValue){for(const name of ['wird5:'+k,'wird4:'+k])try{const raw=localStorage.getItem(name);if(raw!==null)return JSON.parse(raw)}catch{}return defaultValue}
 function save(k,v){try{localStorage.setItem('wird5:'+k,JSON.stringify(v))}catch{}}
-const state={quran:[],hisn:[],flat:[],pages:[],qcfIndex:null,view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:(()=>{const saved=get('mode','plain');return ['mushaf','plain','verses'].includes(saved)?saved:'plain'})(),font:(()=>{const f=get('font','Naskh');return f==='Naskh'?f:'Naskh'})(),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts',{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
+const state={quran:[],hisn:[],flat:[],pages:[],qcfIndex:null,view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:(()=>{const saved=get('mode','plain');return ['mushaf','plain','verses'].includes(saved)?saved:'plain'})(),font:(()=>{const f=get('font','Naskh');return f==='Naskh'?f:'Naskh'})(),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts-day-'+dayKey(),{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
 if(!AudioEngine.RECITERS.some(r=>r.id===state.reciter))state.reciter='ar.sudais';
 let toastTimeout;
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').hidden=true,3200)}
@@ -193,6 +194,8 @@ function renderQuran(){
 }
 function dhikrGoal(v){return Math.max(1,Number.parseInt(v.count,10)||1)}
 function renderHisn(){
+ const completedToday=Object.values(state.counts).filter(n=>Number(n)>0).length;
+ const progressCard='<div class="hisn-today"><span class="hisn-today-icon">✺</span><span><b>أذكار اليوم</b><small>العدّاد يبدأ من جديد كل يوم، والتقدم محفوظ على جهازك.</small></span><strong>'+num(completedToday)+' ذكرًا</strong></div>';
  const filters=[['all','جميع الأبواب'],['الصباح','الصباح'],['المساء','المساء'],['النوم','النوم'],['الصلاة','الصلاة'],['fav','المفضلة']];
  const tabs='<div class="chips">'+filters.map(f=>'<button class="btn small '+(state.hisnFilter===f[0]?'flat':'')+'" data-filter="'+f[0]+'" aria-pressed="'+(state.hisnFilter===f[0])+'">'+f[1]+'</button>').join('')+'</div>';
  const found=state.hisn.map((c,i)=>({...c,i})).filter(c=>(state.hisnFilter==='all'||state.hisnFilter==='fav'||norm(c.title).includes(norm(state.hisnFilter)))&&(!state.hisnSearch||norm(c.title).includes(norm(state.hisnSearch))||c.items.some(v=>norm(v.text).includes(norm(state.hisnSearch)))));
@@ -296,8 +299,8 @@ function handleClick(e){
  if(t.dataset.size){state.size=Math.max(22,Math.min(46,state.size+Number(t.dataset.size)));save('size',state.size);render();return}
  if(t.dataset.filter){state.hisnFilter=t.dataset.filter;render();return}
  if(t.dataset.chapter){state.chapter=Number(t.dataset.chapter);render();return}
- if(t.dataset.count){const k=t.dataset.count,[g,i]=k.split(':').map(Number),v=state.hisn[g].items[i];state.counts[k]=Math.min(dhikrGoal(v),(Number(state.counts[k])||0)+1);save('counts',state.counts);render();return}
- if(t.dataset.reset){state.counts[t.dataset.reset]=0;save('counts',state.counts);render();return}
+ if(t.dataset.count){const k=t.dataset.count,[g,i]=k.split(':').map(Number),v=state.hisn[g].items[i];state.counts[k]=Math.min(dhikrGoal(v),(Number(state.counts[k])||0)+1);save('counts-day-'+dayKey(),state.counts);render();return}
+ if(t.dataset.reset){state.counts[t.dataset.reset]=0;save('counts-day-'+dayKey(),state.counts);render();return}
  if(t.dataset.fav){const k=t.dataset.fav;state.fav=state.fav.includes(k)?state.fav.filter(x=>x!==k):[...state.fav,k];save('fav',state.fav);render();return}
  if(t.dataset.copydhikr){const [g,i]=t.dataset.copydhikr.split(':').map(Number);navigator.clipboard.writeText(state.hisn[g].items[i].text).then(()=>toast('تم نسخ الذكر')).catch(()=>toast('تعذر النسخ'));return}
  if(t.dataset.playmode){if(state.selected)AudioEngine.start(state.selected.s,state.selected.a,t.dataset.playmode);return}
