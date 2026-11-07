@@ -5,7 +5,7 @@ const norm=v=>String(v??'').normalize('NFKD').replace(/[\u064b-\u065f\u0670\u06d
 const num=v=>Number(v).toLocaleString('ar-SA');
 function get(k,defaultValue){for(const name of ['wird5:'+k,'wird4:'+k])try{const raw=localStorage.getItem(name);if(raw!==null)return JSON.parse(raw)}catch{}return defaultValue}
 function save(k,v){try{localStorage.setItem('wird5:'+k,JSON.stringify(v))}catch{}}
-const state={quran:[],hisn:[],flat:[],pages:[],qcfIndex:null,view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:['mushaf','plain','verses'].includes(get('mode','mushaf'))?get('mode','mushaf'):'mushaf',font:get('font','Hafs'),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts',{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
+const state={quran:[],hisn:[],flat:[],pages:[],qcfIndex:null,view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:(()=>{const saved=get('mode','plain');return saved==='mushaf'?'plain':(['plain','verses'].includes(saved)?saved:'plain')})(),font:get('font','Hafs'),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts',{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
 if(!AudioEngine.RECITERS.some(r=>r.id===state.reciter))state.reciter='ar.sudais';
 let toastTimeout;
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').hidden=true,3200)}
@@ -22,7 +22,7 @@ function look(){
 function head(){
  const info={
  home:['السلام عليكم ورحمة الله','اجعل لك من القرآن والذكر نصيبًا كل يوم'],
- quran:['المصحف الشريف','القراءة والبحث والاستماع برواية حفص'],
+ quran:['المصحف الشريف','المصحف الشريف'],
  adhkar:['الأذكار وحصن المسلم','حصن المسلم مع العدادات والمراجع'],
  audio:['التلاوات الصوتية','استماع مباشر وتنزيل للاستماع دون إنترنت'],
  saved:['العلامات المرجعية','آياتك وموضع متابعتك'],
@@ -103,7 +103,7 @@ function qSuggestions(){
 }
 
 function renderHome(){
- $('content').innerHTML='<section class="hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>اقرأ، واستمع، واجعل لك من الذكر نصيبًا.</p><button class="btn" data-resume>متابعة وردك ←</button></div><div class="hero-art" aria-hidden="true">۞</div></section><div class="cards3"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف الشريف</strong><p>صفحات القرآن، البحث، وحفظ مواضع القراءة.</p></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار وحصن المسلم</strong><p>أذكار موثقة بالمراجع وعدادات متابعة.</p></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات الصوتية</strong><p>استماع للآيات وتنزيل السور دون اتصال.</p></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة · ٦٠٤ صفحات</span></div>'+qSearchBar()+'<div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالله للدفاع الجوي"><div><strong>صُنع في كلية الملك عبدالله للدفاع الجوي</strong></div></section>'
+ $('content').innerHTML='<section class="hero home-hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>وردك اليوم، في مكان واحد.</p><button class="btn" data-resume>متابعة القراءة ←</button></div></section><div class="cards3 home-links"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف</strong></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار</strong></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات</strong></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة</span></div>'+qSearchBar()+'<div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالله للدفاع الجوي"><div><strong>صُنع في كلية الملك عبدالله للدفاع الجوي</strong></div></section>';
 }
 function renderSaved(){
  const rows=state.marks.map(key=>{const parts=key.split(':').map(Number),v=verse(parts[0],parts[1]);if(!v)return '';return '<button class="search-result" data-open="'+parts[0]+':'+parts[1]+'"><span class="tag">سورة '+esc(surah(parts[0]).name)+' · الآية '+num(parts[1])+'</span><p>'+esc(basmala({...v,s:parts[0]}).text)+'</p><small>فتح الموضع ←</small></button>'}).join('');
@@ -124,7 +124,7 @@ function ayahHtml(v){
 }
 function toolbar(){
  const choose=state.quran.map(s=>'<option value="'+s.id+'" '+(state.surah===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('');
- return '<div class="reader-controls"><label>السورة <select id="surahSelect">'+choose+'</select></label><label>طريقة القراءة <select id="modeSelect"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>خط المدينة — ١٥ سطرًا</option><option value="plain" '+(state.mode==='plain'?'selected':'')+'>الخط العادي — قراءة متصلة</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label>'+(state.mode==='mushaf'?'<div class="qcf-font-info" title="مصحف المدينة يستخدم خطًا خاصًا لكل صفحة">✥ خط المدينة الأصلي</div>':'<label>الخط العادي <select id="fontSelect"><option value="Naskh" '+(state.font==='Naskh'?'selected':'')+'>نسخ واضح</option><option value="Hafs" '+(state.font==='Hafs'?'selected':'')+'>رسم عثماني</option><option value="Digital" '+(state.font==='Digital'?'selected':'')+'>رقمي</option></select></label>')+'<label class="reader-font-control" for="quranFontSize">حجم الآيات <input type="range" id="quranFontSize" min="22" max="46" value="'+state.size+'"><output id="quranFontSizeValue">'+num(state.size)+'</output></label><button class="btn small" data-size="-2" aria-label="تصغير خط المصحف">أ−</button><button class="btn small" data-size="2" aria-label="تكبير خط المصحف">أ+</button></div>';
+ return '<div class="reader-controls"><label>السورة <select id="surahSelect">'+choose+'</select></label><label>طريقة القراءة <select id="modeSelect"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>قراءة الصفحات بالنص العثماني</option><option value="plain" '+(state.mode==='plain'?'selected':'')+'>الخط العادي — قراءة متصلة</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label>'+(state.mode==='mushaf'?'<div class="qcf-font-info" title="مصحف المدينة يستخدم خطًا خاصًا لكل صفحة">النص العثماني الواضح</div>':'<label>الخط العادي <select id="fontSelect"><option value="Naskh" '+(state.font==='Naskh'?'selected':'')+'>نسخ واضح</option><option value="Hafs" '+(state.font==='Hafs'?'selected':'')+'>رسم عثماني</option><option value="Digital" '+(state.font==='Digital'?'selected':'')+'>رقمي</option></select></label>')+'<label class="reader-font-control" for="quranFontSize">حجم الآيات <input type="range" id="quranFontSize" min="22" max="46" value="'+state.size+'"><output id="quranFontSizeValue">'+num(state.size)+'</output></label><button class="btn small" data-size="-2" aria-label="تصغير خط المصحف">أ−</button><button class="btn small" data-size="2" aria-label="تكبير خط المصحف">أ+</button></div>';
 }
 function pageButtons(){
  return '<div class="pagenav"><button class="btn small" data-page="-1" '+(state.page===1?'disabled':'')+'>→ السابقة</button><label>صفحة <input class="input" id="pageInput" type="number" min="1" max="604" value="'+state.page+'"> من ٦٠٤</label><button class="btn small" data-page="1" '+(state.page===604?'disabled':'')+'>التالية ←</button></div>';
@@ -153,30 +153,13 @@ function fitMushafLines(){
 window.addEventListener('resize',()=>requestAnimationFrame(fitMushafLines));
 
 async function upgradeMushaf(page){
- const target=document.querySelector('.quran-text');if(!target||state.mode!=='mushaf')return;
- const id=String(page).padStart(3,'0');
- let data;try{const response=await fetch('./data/mushaf/pages/page-'+id+'.json');if(!response.ok)return;data=await response.json()}catch{return}
- if(state.page!==page||!data||!Array.isArray(data.lines))return;
- try{
-  if(!QCF_FONT_CACHE.has(id)){
-   const name='QCF2P'+id;const face=new FontFace(name,'url(./fonts/qcf/QCF2'+id+'.ttf) format("truetype")');
-   await face.load();document.fonts.add(face);QCF_FONT_CACHE.set(id,name);
-  }
- }catch{return}
- if(state.page!==page||!target.isConnected)return;
- const face=QCF_FONT_CACHE.get(id);
- const lines=data.lines.map(line=>{
-  if(line.type==='surah_name'){const n=line.decor?.surah||1;return '<div class="qcf-surah">۞ سورة '+esc(surah(n).name)+' ۞</div>'}
-  if(line.type==='basmallah')return '<div class="qcf-basmala" lang="ar" aria-label="بسم الله الرحمن الرحيم"><span class="qcf-basmala-words">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span></div>';
-  if(line.type==='blank')return '<div class="qcf-line qcf-blank" aria-hidden="true"></div>';
-  if(line.type!=='text')return '';
-  const words=(line.words||[]).map(w=>{const p=w.location?.split(':');const key=p&&p.length>=2?p[0]+':'+p[1]:'';return '<span class="qcf-glyph" '+(key?'role="button" tabindex="0" data-ayah="'+esc(key)+'"':'')+'>'+esc(w.qpcV2||'')+'</span>'}).join(' ');
-  return '<div class="qcf-line" dir="rtl">'+words+'</div>'
- }).join('');
- target.innerHTML='<div class="qcf-lines" style="font-family:\''+face+'\',serif">'+lines+'</div>';
- target.setAttribute('data-verified-layout','qcf-v2');
- fitMushafLines();
- requestAnimationFrame(fitMushafLines);
+ // Safety gate: the former private-use QCF glyph stream displayed intrusive circles
+ // inside Quran words on iOS. Until page-specific shaping passes visual verification,
+ // retain only the complete source Uthmani Unicode verses. Never show raw PUA glyphs.
+ const target=document.querySelector('.quran-text');
+ if(!target||state.mode!=='mushaf'||state.page!==page)return;
+ target.dataset.verifiedLayout='safe-unicode';
+ target.setAttribute('lang','ar');
 }
 function plainVerseHtml(v,s){
  const text=basmala({...v,s}).text;
@@ -185,7 +168,7 @@ function plainVerseHtml(v,s){
 function renderPlainSurah(s){
  const sur=surah(s);
  const opening=s!==1&&s!==9?'<div class="plain-basmala" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>':'';
- return '<div class="plain-reader"><div class="plain-surah-heading">۞ سُورَةُ '+esc(sur.name)+' ۞</div>'+opening+'<div class="plain-verses" lang="ar">'+sur.verses.map(v=>plainVerseHtml(v,s)).join('')+'</div></div><div class="notice">الخط العادي للقراءة المتصلة، ويمكن الضغط على الآية للاستماع أو النسخ أو الحفظ. علامة نهاية الآية داخل أقواس بدون الدائرة الزخرفية.</div>';
+ return '<div class="plain-reader"><div class="plain-surah-heading">۞ سُورَةُ '+esc(sur.name)+' ۞</div>'+opening+'<div class="plain-verses" lang="ar">'+sur.verses.map(v=>plainVerseHtml(v,s)).join('')+'</div></div>';
 }
 function renderQuran(){
  const s=surah(state.surah);
@@ -259,7 +242,7 @@ function renderTasbih(){
  $('content').innerHTML='<div class="section-head"><h2>المسبحة الإلكترونية</h2><span>عداد خاص بكل ذكر، محفوظ على هذا الجهاز</span></div><section class="tasbih-panel"><p class="muted">اختر الذكر والعدد المطلوب، ثم اضغط الزر الكبير للتسبيح. يمكنك استخدام مفتاح المسافة أيضًا.</p><label>الذكر <select id="tasbihSelect">'+TASBIH_ITEMS.map((t,i)=>'<option value="'+i+'" '+(i===selection?'selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label><label>الهدف <select id="tasbihGoal">'+[33,100,300,1000].map(x=>'<option value="'+x+'" '+(x===goal?'selected':'')+'>'+num(x)+'</option>').join('')+'</select></label><div class="tasbih-word">'+esc(TASBIH_ITEMS[selection])+'</div><button class="tasbih-button" data-tasbih-add aria-label="اضغط للتسبيح"><small>اضغط للتسبيح</small><strong>'+num(n)+'</strong><span>من '+num(goal)+'</span></button><div class="progressbar"><div style="width:'+Math.min(100,n/goal*100)+'%"></div></div><div class="chips"><button class="btn" data-tasbih-minus>− إنقاص</button><button class="btn" data-tasbih-reset>إعادة العد</button><button class="btn primary" data-tasbih-next>الذكر التالي</button></div></section>';
 }
 function renderSettings(){
- $('content').innerHTML='<div class="section-head"><h2>التفضيلات</h2><span>تُحفظ محليًا على الجهاز</span></div><section class="settings-grid"><div class="audio-card"><h2>القراءة</h2><label>طريقة العرض <select id="settingsMode"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>مصحف المدينة — ١٥ سطرًا</option><option value="plain" '+(state.mode==='plain'?'selected':'')+'>قراءة بالخط العادي</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label><label>الخط <select id="settingsFont">'+[['Hafs','حفص العثماني'],['Naskh','النسخ'],['Digital','الرقمي']].map(([v,n])=>'<option value="'+v+'" '+(state.font===v?'selected':'')+'>'+n+'</option>').join('')+'</select></label><label>حجم الخط <input id="settingsSize" type="range" min="22" max="46" value="'+state.size+'"></label></div><div class="audio-card"><h2>التطبيق</h2><label>المظهر <select id="settingsTheme"><option value="light" '+(!state.dark?'selected':'')+'>نهاري</option><option value="dark" '+(state.dark?'selected':'')+'>ليلي</option></select></label><p>للاستخدام دون إنترنت افتح الموقع مرة واحدة مع الإنترنت حتى يحفظ ملفات القرآن والأذكار والخطوط. أما نسخة ويندوز فتقرأها من ملفاتها المدمجة.</p><p class="muted">التلاوات المضمّنة كاملة في نسخة ويندوز تُجهَّز في حزمة التوزيع خارج المتصفح.</p><button class="btn primary" id="downloadQCF" '+(qcfDownloading?'disabled':'')+'>↓ حفظ جميع صفحات مصحف المدينة دون إنترنت</button><button class="btn" id="stopQCF">إيقاف التنزيل</button><p class="muted" id="qcfProgress">604 صفحة و604 خط؛ يحتاج مساحة تخزين واتصالًا أول مرة.</p></div></section><section class="audio-card"><h2>مركز فحص النظام</h2><p class="muted">يفحص اكتمال البيانات، والخطوط، والتخزين المحلي، والمصدر الصوتي. يساعدك على تحديد العطل بدل إعادة تثبيت التطبيق عشوائيًا.</p><button class="btn primary" id="runDiagnostics">◉ بدء فحص وِرد</button><div id="diagResults" role="status" aria-live="polite"></div></section>';
+ $('content').innerHTML='<div class="section-head"><h2>التفضيلات</h2><span>تُحفظ محليًا على الجهاز</span></div><section class="settings-grid"><div class="audio-card"><h2>القراءة</h2><label>طريقة العرض <select id="settingsMode"><option value="mushaf" '+(state.mode==='mushaf'?'selected':'')+'>الصفحات بالنص العثماني</option><option value="plain" '+(state.mode==='plain'?'selected':'')+'>قراءة بالخط العادي</option><option value="verses" '+(state.mode==='verses'?'selected':'')+'>آية بآية</option></select></label><label>الخط <select id="settingsFont">'+[['Hafs','حفص العثماني'],['Naskh','النسخ'],['Digital','الرقمي']].map(([v,n])=>'<option value="'+v+'" '+(state.font===v?'selected':'')+'>'+n+'</option>').join('')+'</select></label><label>حجم الخط <input id="settingsSize" type="range" min="22" max="46" value="'+state.size+'"></label></div><div class="audio-card"><h2>التطبيق</h2><label>المظهر <select id="settingsTheme"><option value="light" '+(!state.dark?'selected':'')+'>نهاري</option><option value="dark" '+(state.dark?'selected':'')+'>ليلي</option></select></label><p>للاستخدام دون إنترنت افتح الموقع مرة واحدة مع الإنترنت حتى يحفظ ملفات القرآن والأذكار والخطوط. أما نسخة ويندوز فتقرأها من ملفاتها المدمجة.</p><p class="muted">التلاوات المضمّنة كاملة في نسخة ويندوز تُجهَّز في حزمة التوزيع خارج المتصفح.</p><button class="btn primary" id="downloadQCF" '+(qcfDownloading?'disabled':'')+'>↓ حفظ جميع صفحات مصحف المدينة دون إنترنت</button><button class="btn" id="stopQCF">إيقاف التنزيل</button><p class="muted" id="qcfProgress">604 صفحة و604 خط؛ يحتاج مساحة تخزين واتصالًا أول مرة.</p></div></section><section class="audio-card"><h2>مركز فحص النظام</h2><p class="muted">يفحص اكتمال البيانات، والخطوط، والتخزين المحلي، والمصدر الصوتي. يساعدك على تحديد العطل بدل إعادة تثبيت التطبيق عشوائيًا.</p><button class="btn primary" id="runDiagnostics">◉ بدء فحص وِرد</button><div id="diagResults" role="status" aria-live="polite"></div></section>';
 }
 async function runDiagnostics(){
  const el=$('diagResults');if(!el)return;el.textContent='جارٍ فحص الملفات والاتصال…';
