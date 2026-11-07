@@ -198,3 +198,63 @@ body,button,input,select,textarea{font-family:var(--ui-font)}
 
 /* Unicode fallback when a QCF page font is unavailable: readable verse ends, no floating circles. */
 .ayah-end-normal{font-family:"WirdNaskh","Traditional Arabic",serif;font-size:.72em;color:var(--green);white-space:nowrap;margin:0 4px;unicode-bidi:isolate}
+
+/* WIRD 7 — restrained, touch-first layout. Quran source text must not use QCF PUA glyph fonts. */
+:root{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+body{overflow-x:hidden}
+.home-hero{min-height:0;padding:27px 29px;border-radius:18px;background:linear-gradient(130deg,#15614a,#12392f)}
+.home-hero .hero-art{display:none}
+.home-hero h1{font-size:clamp(29px,4vw,45px);line-height:1.5}
+.home-hero p{font-size:14px;margin:5px 0 15px}
+.home-links{gap:10px;margin:16px 0 7px}
+.home-links .feature{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:11px;min-height:75px;padding:12px 15px;box-shadow:none}
+.home-links .feature strong{font-size:16px;font-weight:700;color:var(--ink)}
+.home-links .feature-icon{width:37px;height:37px;font-size:21px;flex-shrink:0}
+.home-links .feature p{display:none}
+.home-links .feature:hover{border-color:var(--green);background:var(--pale)}
+.surah-grid{gap:8px}
+.surah-card{padding:12px;border-radius:11px;box-shadow:none}
+.surah-card:hover{box-shadow:none}
+.section-head{margin:18px 0 12px}
+.section-head h2{font-size:18px}
+.hero-art{display:none}
+.content{max-width:1140px}
+.topbar{height:auto;min-height:78px}
+.plain-reader{box-shadow:none;border:1px solid var(--line);background:var(--surface);padding:23px 27px}
+.plain-verses{font-family:"WirdNaskh","Traditional Arabic",serif;line-height:2.35;word-spacing:normal}
+.quran-text{font-family:"WirdNaskh","Traditional Arabic",serif!important;font-size:var(--qsize,30px);line-height:2.1}
+.quran-text .ayah{font-family:"WirdNaskh","Traditional Arabic",serif}
+.quran-page{box-shadow:none;max-width:760px}
+.quran-page .ayah-end-normal,.plain-verse-number{font-family:"WirdNaskh","Traditional Arabic",serif;white-space:nowrap;background:none}
+.qcf-lines,.qcf-glyph{display:none!important}
+.dhikr-card,.audio-card,.panel{box-shadow:none}
+.dhikr-text{line-height:2.05}
+.home-links .feature:focus-visible,.surah-card:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+@media(max-width:710px){
+ html{scroll-padding-top:12px}
+ .topbar{padding-top:max(16px,var(--safe-top));height:auto;min-height:80px;align-items:center}
+ .top-title{min-width:0}
+ .top-title>span{font-size:17px;line-height:1.4}
+ .top-title small{font-size:11px;line-height:1.5}
+ .content{padding:15px 13px calc(112px + var(--safe-bottom))}
+ .home-hero{padding:22px 20px;min-height:0}
+ .home-hero h1{font-size:clamp(27px,7vw,36px)}
+ .home-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:13px 0 6px}
+ .home-links .feature{min-height:85px;padding:12px 4px;gap:6px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+ .home-links .feature-icon{width:35px;height:35px;font-size:20px}
+ .home-links .feature strong{font-size:12px;text-align:center;white-space:nowrap}
+ .surah-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .surah-card{padding:10px;gap:7px;min-height:68px}
+ .surah-card strong{font-size:13px}
+ .surah-card small{font-size:10px}
+ .surah-index{width:29px;height:29px;line-height:29px;font-size:12px}
+ .plain-reader{padding:17px 13px}
+ .plain-verses{font-size:clamp(24px,var(--qsize),40px);line-height:2.3}
+ .quran-text{font-size:clamp(24px,var(--qsize),40px)}
+ .reader-controls{padding:11px;gap:8px}
+ .reader-controls select{max-width:none}
+ .sidebar{padding-bottom:var(--safe-bottom)!important;height:calc(71px + var(--safe-bottom))!important}
+ .site-footer{margin-bottom:95px}
+ .college-home{margin:15px 0}
+}
+@media(max-width:360px){.home-links .feature strong{font-size:11px}.surah-grid{grid-template-columns:1fr 1fr}}
