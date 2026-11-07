@@ -1,5 +1,5 @@
-const VERSION='wird-shell-v7-20261107';
-const CORE=['./','./index.html','./v5.css?v=7.0','./audio5.js?v=7.0','./v5.js?v=7.0','./manifest.webmanifest','./icon.svg','./data/quran.json','./data/hisn.json','./data/reciters-extra.json','./data/mushaf/verse-page-index.json','./assets/college-logo.png'];
+const VERSION='wird-shell-v8-20261107';
+const CORE=['./','./index.html','./v5.css?v=8.0','./wird-ui-v8.css?v=8.0','./audio5.js?v=8.0','./v5.js?v=8.0','./manifest.webmanifest','./icon.svg','./data/quran.json','./data/hisn.json','./data/reciters-extra.json','./data/mushaf/verse-page-index.json','./assets/college-logo.png'];
 const OPTIONAL=['./adhkar.html','./audio.html','./og-cover.svg','./fonts/kfg-hafs.woff2','./fonts/kfg-naskh.woff2','./fonts/kfg-digital-v2.woff2','./fonts/ui/site.woff2','./fonts/ui/site.woff','./fonts/ui/site.ttf','./fonts/ui/site.otf'];
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(VERSION);await cache.addAll(CORE);await Promise.all(OPTIONAL.map(async url=>{try{await cache.add(url)}catch{}}));await self.skipWaiting()})())});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==VERSION&&k!=='wird-audio-v5'&&k!=='wird-qcf-v6'&&(k.startsWith('wird-')||k.startsWith('kaada-quran-'))).map(k=>caches.delete(k)));await self.clients.claim()})())});
