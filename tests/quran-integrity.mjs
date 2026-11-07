@@ -16,6 +16,7 @@ for(let i=0;i<q.length;i++){
   assert.equal(v.id,j+1,'Missing or reordered ayah '+(i+1)+':'+(j+1));
   assert.equal(typeof v.text,'string','Missing text '+key);
   assert.ok(v.text.trim().length>=1&&!/[\uFFFD\u0000-\u0008]/.test(v.text),'Empty or invalid Unicode '+key);
+  assert.ok(!/[\uE000-\uF8FF\u25CC]/u.test(v.text),'Private-use / dotted-circle glyph in canonical Quran text '+key);
   assert.ok(Number.isInteger(v.page)&&v.page>=priorPage&&v.page<=604,'Page sequence '+key);
   assert.ok(Number.isInteger(v.juz)&&v.juz>=lastJuz&&v.juz<=30,'Juz sequence '+key);
   priorPage=v.page;lastJuz=v.juz;
