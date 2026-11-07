@@ -5,7 +5,7 @@ const norm=v=>String(v??'').normalize('NFKD').replace(/[\u064b-\u065f\u0670\u06d
 const num=v=>Number(v).toLocaleString('ar-SA');
 function get(k,defaultValue){for(const name of ['wird5:'+k,'wird4:'+k])try{const raw=localStorage.getItem(name);if(raw!==null)return JSON.parse(raw)}catch{}return defaultValue}
 function save(k,v){try{localStorage.setItem('wird5:'+k,JSON.stringify(v))}catch{}}
-const state={quran:[],hisn:[],flat:[],pages:[],qcfIndex:null,view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:(()=>{const saved=get('mode','plain');return saved==='mushaf'?'plain':(['plain','verses'].includes(saved)?saved:'plain')})(),font:(()=>{const f=get('font','Naskh');return f==='Naskh'?f:'Naskh'})(),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts',{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
+const state={quran:[],hisn:[],flat:[],pages:[],qcfIndex:null,view:'home',surah:1,ayah:1,page:1,chapter:0,hisnFilter:'all',hisnSearch:'',mode:(()=>{const saved=get('mode','plain');return ['mushaf','plain','verses'].includes(saved)?saved:'plain'})(),font:(()=>{const f=get('font','Naskh');return f==='Naskh'?f:'Naskh'})(),size:get('size',32),dark:get('dark',false),marks:get('marks',[]),last:get('last',{s:1,a:1}),fav:get('fav',[]),counts:get('counts',{}),reciter:get('reciter','ar.sudais'),selected:null,search:''};
 if(!AudioEngine.RECITERS.some(r=>r.id===state.reciter))state.reciter='ar.sudais';
 let toastTimeout;
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').hidden=true,3200)}
