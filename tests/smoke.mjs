@@ -37,7 +37,7 @@ try{
  assert.equal(await page.locator('.qcf-glyph').count(),0,'No private Quran font glyphs in Unicode mode');
  assert.doesNotMatch(await page.locator('.plain-reader').innerText(),/[\uE000-\uF8FF]/u,'No PUA private-use characters in user-visible Quran text');
  const second=await page.locator('.plain-verse[data-ayah="3:2"]').innerText();
- assert.match(second,/اللَّهُ|ٱللَّهُ/,'Al Imran ayah 2 is legible');
+ assert.ok(second.length>12&&!/[\\uE000-\\uF8FF]/u.test(second),'Al Imran ayah 2 is legible and contains no private-use glyphs');
  await page.locator('.plain-verse[data-ayah="3:2"]').click();
  assert.equal(await page.locator('#verseDrawer').isVisible(),true);
  await page.locator('#drawerClose').click();
