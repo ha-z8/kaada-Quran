@@ -88,6 +88,8 @@ try{
  await page.reload({waitUntil:'domcontentloaded'});
  await page.locator('.surah-card').first().waitFor({timeout:15000});
  await open('#quran/3/1');
+ await page.locator('#modeSelect').waitFor();
+ await page.locator('#modeSelect').selectOption('plain');
  await page.locator('.plain-reader').waitFor();
  assert.equal(await page.locator('.plain-verse').count(),200,'Offline Quran complete');
  await open('#adhkar');await page.locator('.dhikr-card').first().waitFor();
