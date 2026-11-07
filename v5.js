@@ -19,10 +19,6 @@ function look(){
  document.documentElement.style.setProperty('--qfont',({Hafs:'WirdHafs',Naskh:'WirdNaskh',Digital:'WirdDigital'}[state.font]||'WirdHafs')+',"Traditional Arabic",serif');
  document.querySelectorAll('[data-view]').forEach(n=>n.classList.toggle('active',n.dataset.view===state.view));
 }
-function setConnection(){
- $('connection').textContent=navigator.onLine?'متصل بالإنترنت':'وضع عدم الاتصال';
- document.querySelector('.dot').style.background=navigator.onLine?'#42ae74':'#c69e55';
-}
 function head(){
  const info={
  home:['السلام عليكم ورحمة الله','اجعل لك من القرآن والذكر نصيبًا كل يوم'],
@@ -107,7 +103,7 @@ function qSuggestions(){
 }
 
 function renderHome(){
- $('content').innerHTML='<section class="hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>اقرأ، واستمع، واجعل لك من الذكر نصيبًا.</p><button class="btn" data-resume>متابعة وردك ←</button></div><div class="hero-art" aria-hidden="true">۞</div></section><div class="cards3"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف الشريف</strong><p>صفحات القرآن، البحث، وحفظ مواضع القراءة.</p></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار وحصن المسلم</strong><p>أذكار موثقة بالمراجع وعدادات متابعة.</p></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات الصوتية</strong><p>استماع للآيات وتنزيل السور دون اتصال.</p></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة · ٦٠٤ صفحات</span></div>'+qSearchBar()+'<div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالله للدفاع الجوي"><div><strong>أُنشئ داخل كلية الملك عبدالله للدفاع الجوي</strong><p>هذا المشروع أُنشئ داخل كلية الملك عبدالله للدفاع الجوي، مع هوية مستقلة لوِرد.</p></div></section>'
+ $('content').innerHTML='<section class="hero"><div><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><h1>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</h1><p>اقرأ، واستمع، واجعل لك من الذكر نصيبًا.</p><button class="btn" data-resume>متابعة وردك ←</button></div><div class="hero-art" aria-hidden="true">۞</div></section><div class="cards3"><button class="feature" data-go="quran"><span class="feature-icon">۞</span><strong>المصحف الشريف</strong><p>صفحات القرآن، البحث، وحفظ مواضع القراءة.</p></button><button class="feature" data-go="adhkar"><span class="feature-icon">✺</span><strong>الأذكار وحصن المسلم</strong><p>أذكار موثقة بالمراجع وعدادات متابعة.</p></button><button class="feature" data-go="audio"><span class="feature-icon">◉</span><strong>التلاوات الصوتية</strong><p>استماع للآيات وتنزيل السور دون اتصال.</p></button></div><div class="section-head"><h2>سور القرآن الكريم</h2><span>١١٤ سورة · ٦٠٤ صفحات</span></div>'+qSearchBar()+'<div class="surah-grid">'+surahCards()+'</div><section class="college-home"><img src="./assets/college-logo.png" alt="شعار كلية الملك عبدالله للدفاع الجوي"><div><strong>صُنع في كلية الملك عبدالله للدفاع الجوي</strong></div></section>'
 }
 function renderSaved(){
  const rows=state.marks.map(key=>{const parts=key.split(':').map(Number),v=verse(parts[0],parts[1]);if(!v)return '';return '<button class="search-result" data-open="'+parts[0]+':'+parts[1]+'"><span class="tag">سورة '+esc(surah(parts[0]).name)+' · الآية '+num(parts[1])+'</span><p>'+esc(basmala({...v,s:parts[0]}).text)+'</p><small>فتح الموضع ←</small></button>'}).join('');
@@ -205,7 +201,7 @@ function renderQuran(){
  }else{
   const page=state.pages[state.page],first=page?.[0];
   if(!first){$('content').innerHTML='<div class="empty">صفحة المصحف غير متاحة</div>';return}
-  html+=pageButtons()+'<article class="quran-page"><div class="qpage-header"><span>الجزء '+num(first.juz)+'</span><span>وِرد · حفص</span><span>صفحة '+num(state.page)+'</span></div><div class="quran-text">'+page.map(ayahHtml).join('')+'</div><div class="qpage-footer">﴿ '+num(state.page)+' ﴾</div></article>'+pageButtons()+'<div class="notice">تعرض الصفحة أسطر مصحف المدينة QCF V2 عند اكتمال تنزيل ملف الصفحة وخطها؛ وإن تعذّر تحميلها يظهر النص العثماني العادي دون حذف الآيات.</div>';
+  html+=pageButtons()+'<article class="quran-page"><div class="qpage-header"><span>الجزء '+num(first.juz)+'</span><span>وِرد · حفص</span><span>صفحة '+num(state.page)+'</span></div><div class="quran-text">'+page.map(ayahHtml).join('')+'</div><div class="qpage-footer">﴿ '+num(state.page)+' ﴾</div></article>'+pageButtons()+'';
  }
  $('content').innerHTML=html;
  if(state.mode==='mushaf')upgradeMushaf(state.page);
@@ -223,7 +219,7 @@ function renderHisn(){
   const id=state.chapter+':'+v.i,goal=dhikrGoal(v),count=Math.min(goal,Number(state.counts[id])||0),complete=count>=goal;
   return '<article class="dhikr-card '+(complete?'done':'')+'"><div class="tag">الذكر '+num(v.i+1)+' <span class="pill">'+(complete?'✓ مكتمل':'المطلوب '+num(goal))+'</span></div><div class="dhikr-text">'+esc(v.text)+'</div><p class="dhikr-ref">'+esc(v.reference||'لا يوجد مرجع مذكور')+'</p><div class="count-row"><button class="btn primary count-button" data-count="'+id+'" '+(complete?'disabled':'')+'>'+(complete?'✓ أُكمل الذكر':'اضغط للعدّ')+' <strong>'+num(count)+' / '+num(goal)+'</strong></button><button class="btn small" data-reset="'+id+'">إعادة</button><button class="btn small" data-fav="'+id+'">'+(state.fav.includes(id)?'★ محفوظ':'☆ حفظ')+'</button><button class="btn small" data-copydhikr="'+id+'">نسخ</button></div></article>';
  }).join('');
- $('content').innerHTML='<div class="section-head"><h2>حصن المسلم</h2><span>'+num(state.hisn.length)+' بابًا · '+num(state.hisn.reduce((a,c)=>a+c.items.length,0))+' ذكرًا</span></div>'+tabs+'<div class="two-col"><aside class="panel"><input id="hisnSearch" class="input" placeholder="ابحث في الأذكار…" value="'+esc(state.hisnSearch)+'"><div class="chapter-list">'+(list||'<div class="empty">لا توجد نتائج</div>')+'</div></aside><section><div class="section-head"><h2>'+esc(c.title)+'</h2><span>'+num(items.length)+' ذكرًا</span></div>'+(cards||'<div class="empty">لا توجد أذكار مطابقة</div>')+'</section></div><div class="notice">المصدر: تفاصيل مصادر الأذكار وتراخيصها في صفحة المصادر، ومراجع كل ذكر معروضة أسفله.</div>';
+ $('content').innerHTML='<div class="section-head"><h2>حصن المسلم</h2><span>'+num(state.hisn.length)+' بابًا · '+num(state.hisn.reduce((a,c)=>a+c.items.length,0))+' ذكرًا</span></div>'+tabs+'<div class="two-col"><aside class="panel"><input id="hisnSearch" class="input" placeholder="ابحث في الأذكار…" value="'+esc(state.hisnSearch)+'"><div class="chapter-list">'+(list||'<div class="empty">لا توجد نتائج</div>')+'</div></aside><section><div class="section-head"><h2>'+esc(c.title)+'</h2><span>'+num(items.length)+' ذكرًا</span></div>'+(cards||'<div class="empty">لا توجد أذكار مطابقة</div>')+'</section></div>';
 }
 function renderAudio(){
  const r=AudioEngine.reciter(),prefs=AudioEngine.getPreferences();
@@ -362,11 +358,11 @@ function events(){
  document.addEventListener('click',e=>{if(!e.target.closest('.smart-search')){const list=$('searchSuggestions');if(list)list.hidden=true}});
  document.addEventListener('focusin',e=>{if(e.target.id==='mainSearch')qSuggestions()});
  document.addEventListener('keydown',e=>{if(e.target.id==='mainSearch'&&e.key==='Enter'){e.preventDefault();searchView(e.target.value);return}if(e.target.id==='mainSearch'&&e.key==='ArrowDown'){const option=document.querySelector('.search-suggestion');if(option){e.preventDefault();option.focus()}return}if(e.key==='Escape'){const list=$('searchSuggestions');if(list)list.hidden=true}if(e.key==='Escape')closeDrawer();if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ayah')){e.preventDefault();e.target.click()}});
- window.addEventListener('hashchange',route);window.addEventListener('online',setConnection);window.addEventListener('offline',setConnection);
+ window.addEventListener('hashchange',route);
 }
 window.W={state,render,closeDrawer,save,toast,num,printedPage};
 async function init(){
- events();AudioEngine.init();setConnection();look();
+ events();AudioEngine.init();look();
  try{
   const [qr,hr]=await Promise.all([fetch('./data/quran.json'),fetch('./data/hisn.json')]);
   if(!qr.ok||!hr.ok)throw Error('تعذّر جلب ملفات البيانات');
