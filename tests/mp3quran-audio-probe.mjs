@@ -9,3 +9,5 @@ for(const reader of catalog.reciters.filter(x=>['ياسر الدوسري','خا�
   await response.body?.cancel();
  }catch(e){console.log(reader.name,'UNAVAILABLE',e.message)}
 }
+
+// Live check: ensure this audit is rerun whenever optional reciter catalog changes.
