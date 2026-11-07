@@ -19,7 +19,7 @@ const RECITERS=[
 function setExtras(list){
  if(!Array.isArray(list))return;
  for(const raw of list){
-  if(!raw||!/^mp3quran-\\d+$/.test(raw.id)||!/^https:\/\//.test(raw.server)||!Array.isArray(raw.chapters))continue;
+  if(!raw||!/^mp3quran-\d+$/.test(raw.id)||!/^https:\/\//.test(raw.server)||!Array.isArray(raw.chapters))continue;
   if(RECITERS.some(r=>r.id===raw.id))continue;
   RECITERS.push({id:raw.id,name:String(raw.name),type:'surah',server:raw.server,chapters:raw.chapters.filter(n=>Number.isInteger(n)&&n>=1&&n<=114)});
  }
