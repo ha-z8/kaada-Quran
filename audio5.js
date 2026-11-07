@@ -16,6 +16,15 @@ const RECITERS=[
 {id:'ar.minshawimujawwad',name:'المنشاوي — مجود',rate:64,folder:'Minshawy_Mujawwad_64kbps'},
 {id:'ar.abdulbasitmujawwad',name:'عبدالباسط — مجود',rate:192,folder:'Abdul_Basit_Mujawwad_128kbps'}
 ];
+function setExtras(list){
+ if(!Array.isArray(list))return;
+ for(const raw of list){
+  if(!raw||!/^mp3quran-\\d+$/.test(raw.id)||!/^https:\/\//.test(raw.server)||!Array.isArray(raw.chapters))continue;
+  if(RECITERS.some(r=>r.id===raw.id))continue;
+  RECITERS.push({id:raw.id,name:String(raw.name),type:'surah',server:raw.server,chapters:raw.chapters.filter(n=>Number.isInteger(n)&&n>=1&&n<=114)});
+ }
+}
+const surahURL=(r,n)=>r?.type==='surah'&&r.chapters.includes(Number(n))?r.server+String(n).padStart(3,'0')+'.mp3':null;
 const readAudio=(name,fallback)=>{try{const raw=localStorage.getItem('wird6:'+name);if(raw===null)return fallback;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:fallback}catch{return fallback}};
 let current=-1,mode='one',token=0,blobUrl=null,downloading=false,cancel=false,speed=readAudio('speed',1),repeat=readAudio('repeat',1),volume=readAudio('volume',1),repeatDone=0;
 const el=id=>document.getElementById(id);
@@ -32,7 +41,20 @@ async function playAt(index){
  current=index;token++;const request=token,player=el('audioElement');player.pause();revoke();
  el('dock').hidden=false;el('dockReciter').innerHTML=opts();
  status('سورة '+w.state.quran[v.s-1].name+' · الآية '+w.num(v.id),'جارٍ تجهيز التلاوة…');
- const r=reciter(),rates=(r.folder?[r.rate]:[r.rate,128,192,64]).filter((x,i,a)=>a.indexOf(x)===i);
+ const r=reciter();
+ if(r.type==='surah'){
+  const url=surahURL(r,v.s);
+  if(!url){status('لا توجد هذه السورة بصوت '+r.name,'اختر قارئًا آخر');return}
+  const saved=await cached(url);
+  if(request!==token){if(saved)URL.revokeObjectURL(saved);return}
+  if(saved){blobUrl=saved;player.src=saved;status('سورة '+w.state.quran[v.s-1].name,'السورة محفوظة · متاحة دون إنترنت')}
+  else if(!navigator.onLine){status('السورة غير محفوظة','يمكن تنزيلها عند توفر الإنترنت إذا سمح المصدر');return}
+  else{player.src=url;status('سورة '+w.state.quran[v.s-1].name,'تلاوة سورة كاملة بصوت '+r.name)}
+  player.playbackRate=speed;player.volume=Math.min(1,Math.max(0,volume));
+  try{await player.play();if(request===token)el('dockToggle').textContent='❚❚'}catch{status('تعذر تشغيل السورة','قد لا يكون هذا التسجيل متاحًا الآن');el('dockToggle').textContent='▶'}
+  return;
+ }
+ const rates=(r.folder?[r.rate]:[r.rate,128,192,64]).filter((x,i,a)=>a.indexOf(x)===i);
  if(window.wirdDesktop&&r.folder&&['ar.sudais','ar.muhammadayoub'].includes(r.id)){
    player.src=localFile(r,v);player.playbackRate=speed;status('سورة '+w.state.quran[v.s-1].name+' · الآية '+w.num(v.id),'حزمة ويندوز المحلية · يعمل دون إنترنت');
    try{await player.play();el('dockToggle').textContent='❚❚'}catch{el('dockToggle').textContent='▶';status('تعذر قراءة التسجيل المحلي','تحقق من اكتمال حزمة الصوت لويندوز')}
@@ -50,13 +72,50 @@ async function playAt(index){
  }
  player.playbackRate=speed;try{await player.play();if(request===token)el('dockToggle').textContent='❚❚'}catch{if(request===token){el('dockToggle').textContent='▶';el('dockStatus').textContent='اضغط ▶ لبدء الاستماع'}}
 }
-function start(s,a,how){const w=settings();if(!w)return;const index=w.state.flat.findIndex(v=>v.s===Number(s)&&v.id===Number(a));if(index<0)return;mode=how;repeatDone=0;w.closeDrawer();playAt(index)}
-function next(delta=1,manual=false){if(!manual&&(repeat===0||repeatDone+1<repeat)){repeatDone++;const a=el('audioElement');a.currentTime=0;a.play().catch(()=>{});return}repeatDone=0;const w=settings(),v=w.state.flat[current],n=w.state.flat[current+delta];if(!n||!v||(!manual&&(mode==='one'||mode==='surah'&&n.s!==v.s))){stop();return}playAt(current+delta);if(w.state.view==='quran'){const printed=w.printedPage(n.s,n.id);if(w.state.surah!==n.s||w.state.page!==printed){w.state.surah=n.s;w.state.page=printed;w.state.ayah=n.id;w.render()}}}
+function start(s,a,how){const w=settings();if(!w)return;if(reciter().type==='surah'&&Number(a)>1)w.toast('هذا القارئ متاح بسورة كاملة؛ تبدأ التلاوة من أول السورة.');const index=w.state.flat.findIndex(v=>v.s===Number(s)&&v.id===Number(a));if(index<0)return;mode=how;repeatDone=0;w.closeDrawer();playAt(index)}
+function next(delta=1,manual=false){
+ if(reciter().type==='surah'){
+  const w=settings(),currentTrack=w.state.flat[current];
+  if(!currentTrack){stop();return}
+  if(!manual&&(repeat===0||repeatDone+1<repeat)){repeatDone++;const player=el('audioElement');player.currentTime=0;player.play().catch(()=>{});return}
+  repeatDone=0;
+  if(!manual&&mode!=='quran'){stop();return}
+  const n=currentTrack.s+delta;
+  if(n<1||n>114||!reciter().chapters.includes(n)){stop();return}
+  const index=w.state.flat.findIndex(v=>v.s===n&&v.id===1);
+  if(index<0){stop();return}
+  playAt(index);
+  return;
+ }
+if(!manual&&(repeat===0||repeatDone+1<repeat)){repeatDone++;const a=el('audioElement');a.currentTime=0;a.play().catch(()=>{});return}repeatDone=0;const w=settings(),v=w.state.flat[current],n=w.state.flat[current+delta];if(!n||!v||(!manual&&(mode==='one'||mode==='surah'&&n.s!==v.s))){stop();return}playAt(current+delta);if(w.state.view==='quran'){const printed=w.printedPage(n.s,n.id);if(w.state.surah!==n.s||w.state.page!==printed){w.state.surah=n.s;w.state.page=printed;w.state.ayah=n.id;w.render()}}}
 function stop(){token++;repeatDone=0;current=-1;el('audioElement').pause();el('audioElement').removeAttribute('src');el('audioElement').load();revoke();el('dock').hidden=true}
 function changeReciter(id){if(!RECITERS.some(r=>r.id===id))return;const w=settings();w.state.reciter=id;w.save('reciter',id);if(current>=0)playAt(current);else w.render()}
 async function download(s){
  if(downloading)return;
  const w=settings(),r=reciter(),tracks=w.state.flat.filter(v=>v.s===Number(s));
+ if(r.type==='surah'){
+  const url=surahURL(r,s),label=el('downloadStatus'),button=el('downloadSurah');
+  if(!url){w.toast('التسجيل غير متاح لهذه السورة');return}
+  if(!navigator.onLine){w.toast('يتطلب التنزيل الاتصال بالإنترنت');return}
+  if(!('caches'in window)){w.toast('المتصفح لا يدعم حفظ الصوت');return}
+  try{
+   if(button)button.disabled=true;
+   if(label)label.textContent='جارٍ تنزيل سورة '+w.state.quran[Number(s)-1].name+' بصوت '+r.name+'…';
+   const cache=await caches.open(STORE);
+   if(!(await cache.match(url))){
+    const response=await fetch(url,{mode:'cors',signal:AbortSignal.timeout(120000)});
+    if(!response.ok||response.type==='opaque')throw Error('تعذر حفظ الملف');
+    const blob=await response.blob();
+    if(blob.size<10000)throw Error('ملف صوتي غير صالح');
+    await cache.put(url,new Response(blob,{headers:{'Content-Type':'audio/mpeg'}}));
+   }
+   if(label)label.textContent='✓ تم حفظ السورة كاملة للاستماع دون إنترنت.';
+   const bar=el('downloadProgress');if(bar)bar.style.width='100%';
+  }catch(e){if(label)label.textContent='تعذر حفظ الملف من هذا المصدر. يمكن الاستماع عبر الإنترنت، وقد يمنع المصدر التنزيل في المتصفح.'}
+  finally{if(button)button.disabled=false}
+  return;
+ }
+
  if(!navigator.onLine){w.toast('التنزيل يحتاج إلى اتصال بالإنترنت');return}
  if(!('caches'in window)){w.toast('التخزين الصوتي غير متاح في المتصفح');return}
  downloading=true;cancel=false;
@@ -89,7 +148,14 @@ async function download(s){
   else if(ok===tracks.length&&label)label.textContent='✓ اكتمل حفظ السورة بصوت '+r.name+' دون اتصال.';
  }
 }
-async function check(s){const w=settings(),r=reciter(),tracks=w.state.flat.filter(v=>v.s===Number(s));let count=0;try{const cache=await caches.open(STORE);for(const v of tracks)if(await cache.match(fileURL(r,v)))count++}catch{}const label=el('downloadStatus');if(label)label.textContent='المحفوظ '+w.num(count)+' من '+w.num(tracks.length)+' آية بصوت '+r.name}
+async function check(s){const w=settings(),r=reciter(),tracks=w.state.flat.filter(v=>v.s===Number(s));
+ if(r.type==='surah'){
+  const url=surahURL(r,s);let saved=false;
+  try{saved=Boolean(url&&await(await caches.open(STORE)).match(url))}catch{}
+  const label=el('downloadStatus');if(label)label.textContent=saved?'✓ السورة محفوظة بالكامل':'السورة غير محفوظة على هذا الجهاز';
+  return;
+ }
+let count=0;try{const cache=await caches.open(STORE);for(const v of tracks)if(await cache.match(fileURL(r,v)))count++}catch{}const label=el('downloadStatus');if(label)label.textContent='المحفوظ '+w.num(count)+' من '+w.num(tracks.length)+' آية بصوت '+r.name}
 function init(){
  el('dockReciter').innerHTML=opts();
  el('audioElement').volume=Math.min(1,Math.max(0,volume));
@@ -99,5 +165,5 @@ function init(){
  el('dockToggle').onclick=()=>{const player=el('audioElement');if(player.paused)player.play().then(()=>el('dockToggle').textContent='❚❚').catch(()=>settings().toast('تعذر تشغيل التسجيل'));else{player.pause();el('dockToggle').textContent='▶'}};
  el('dockStop').onclick=stop;el('dockNext').onclick=()=>next(1,true);el('dockPrevious').onclick=()=>next(-1,true);
 }
-return {RECITERS,reciter,opts,start,stop,changeReciter,download,check,init,setSpeed:(v)=>{if(!Number.isFinite(v)||v<.5||v>2)return;speed=v;el('audioElement').playbackRate=v;try{localStorage.setItem('wird6:speed',String(v))}catch{}},setRepeat:(v)=>{if(!Number.isInteger(v)||v<0||v>20)return;repeat=v;repeatDone=0;try{localStorage.setItem('wird6:repeat',String(v))}catch{}},setVolume:(v)=>{if(!Number.isFinite(v)||v<0||v>1)return;volume=v;el('audioElement').volume=v;try{localStorage.setItem('wird6:volume',String(v))}catch{}},getPreferences:()=>({speed,repeat,volume}),abort:()=>{cancel=true},fileURL};
+return {RECITERS,setExtras,surahURL,reciter,opts,start,stop,changeReciter,download,check,init,setSpeed:(v)=>{if(!Number.isFinite(v)||v<.5||v>2)return;speed=v;el('audioElement').playbackRate=v;try{localStorage.setItem('wird6:speed',String(v))}catch{}},setRepeat:(v)=>{if(!Number.isInteger(v)||v<0||v>20)return;repeat=v;repeatDone=0;try{localStorage.setItem('wird6:repeat',String(v))}catch{}},setVolume:(v)=>{if(!Number.isFinite(v)||v<0||v>1)return;volume=v;el('audioElement').volume=v;try{localStorage.setItem('wird6:volume',String(v))}catch{}},getPreferences:()=>({speed,repeat,volume}),abort:()=>{cancel=true},fileURL};
 })();
