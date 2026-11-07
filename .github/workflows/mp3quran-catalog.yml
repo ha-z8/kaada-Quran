@@ -1,0 +1,30 @@
+name: Update official additional Quran reciters catalog
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/build-mp3quran-catalog.mjs'
+      - '.github/workflows/mp3quran-catalog.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tools/build-mp3quran-catalog.mjs
+      - name: Commit curated Quran reciters data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/reciters-extra.json
+          if ! git diff --cached --quiet; then
+            git commit -m "audio: add verified MP3Quran surah reciters catalog"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
